@@ -2,17 +2,25 @@ import { ChakraProvider, theme, ColorModeScript } from "@chakra-ui/react";
 import { BrowserRouter as Router } from "react-router-dom";
 import React, { StrictMode } from "react";
 import ReactDOM from "react-dom";
+
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import * as serviceWorker from "./serviceWorker";
+import { AuthProvider } from "./contexts/AuthContext";
+import { Provider } from "react-redux";
+import store from "./state/store";
 
 ReactDOM.render(
   <StrictMode>
     <ColorModeScript />
     <ChakraProvider theme={theme}>
-      <Router>
-        <App />
-      </Router>
+      <Provider store={store}>
+        <AuthProvider>
+          <Router>
+            <App />
+          </Router>
+        </AuthProvider>
+      </Provider>
     </ChakraProvider>
   </StrictMode>,
   document.getElementById("root")

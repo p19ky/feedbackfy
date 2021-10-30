@@ -1,11 +1,11 @@
 import React from "react";
-import { Redirect, Route } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { Route, Redirect } from "react-router-dom";
 
 import GlobalLoading from "./GlobalLoading";
 import { useAuth } from "../contexts/AuthContext";
 
-const ProtectedRoute = ({ component: Component, ...rest }) => {
+const AuthenticationRoute = ({ component: Component, ...rest }) => {
   const { isAuthenticated } = useAuth();
   const isUserInitialized = useSelector((state) => state.user.initialized);
 
@@ -15,13 +15,12 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
     <Route
       {...rest}
       component={(props) =>
-        isAuthenticated ? (
+        !isAuthenticated ? (
           <Component {...rest} {...props} />
         ) : (
           <Redirect
             to={{
-              pathname: "/login",
-              state: { from: rest.path },
+              pathname: "/",
             }}
           />
         )
@@ -30,4 +29,4 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
   );
 };
 
-export default ProtectedRoute;
+export default AuthenticationRoute;
