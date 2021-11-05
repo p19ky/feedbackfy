@@ -1,5 +1,5 @@
 import { ChakraProvider, theme, ColorModeScript } from "@chakra-ui/react";
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import React, { StrictMode } from "react";
 import ReactDOM from "react-dom";
 
@@ -16,9 +16,9 @@ ReactDOM.render(
     <ChakraProvider theme={theme}>
       <Provider store={store}>
         <AuthProvider>
-          <Router>
+          <BrowserRouter>
             <App />
-          </Router>
+          </BrowserRouter>
         </AuthProvider>
       </Provider>
     </ChakraProvider>

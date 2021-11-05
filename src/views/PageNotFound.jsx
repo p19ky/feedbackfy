@@ -1,7 +1,7 @@
-import { Box } from "@chakra-ui/layout";
+import { Box, Heading } from "@chakra-ui/layout";
 import React from "react";
 
-const GlobalLoading = () => {
+const PageNotFound = () => {
   return (
     <Box
       d="flex"
@@ -10,9 +10,9 @@ const GlobalLoading = () => {
       flex="1"
       minH="100vh"
     >
-      Loading...
+      <Heading>PAGE NOT FOUND 🤔</Heading>
     </Box>
   );
 };
 
-export default GlobalLoading;
+export default PageNotFound;
