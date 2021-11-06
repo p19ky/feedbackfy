@@ -1766,6 +1766,13 @@
     "exec-sh" "^0.3.2"
     "minimist" "^1.2.0"
 
+"@crello/react-lottie@^0.0.11":
+  "integrity" "sha512-V+U50f2k1pRBpfVyHEUc3A+L9bwQnQxuxRZqP5w/mKcTlc9h8mmuYOI5gh3S6VAUrUhzyIE1NgN/pHHU0EhBNA=="
+  "resolved" "https://registry.npmjs.org/@crello/react-lottie/-/react-lottie-0.0.11.tgz"
+  "version" "0.0.11"
+  dependencies:
+    "lottie-web" "^5.7.3"
+
 "@csstools/convert-colors@^1.4.0":
   "integrity" "sha512-5a6wqoJV/xEdbRNKVo6I4hO3VjyDq//8q2f9I6PBAvMesJHFauXDorcNCsr9RzvsZnaWi5NYCcfyqP1QeFHFbw=="
   "resolved" "https://registry.npmjs.org/@csstools/convert-colors/-/convert-colors-1.4.0.tgz"
@@ -8610,6 +8617,11 @@
   dependencies:
     "js-tokens" "^3.0.0 || ^4.0.0"
 
+"lottie-web@^5.7.3":
+  "integrity" "sha512-J+QEPse7Rws0XvTqRJNtcE8cszb5FWYFHubEK6bgDJtw64/AQJ40aazbWXsWGBM4sm/PgLBLgmmhDU4QpLiieg=="
+  "resolved" "https://registry.npmjs.org/lottie-web/-/lottie-web-5.7.14.tgz"
+  "version" "5.7.14"
+
 "lower-case@^2.0.2":
   "integrity" "sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg=="
   "resolved" "https://registry.npmjs.org/lower-case/-/lower-case-2.0.2.tgz"
@@ -10709,7 +10721,7 @@
     "strip-ansi" "6.0.0"
     "text-table" "0.2.0"
 
-"react-dom@^17.0.2", "react-dom@>=16.8":
+"react-dom@^17.0.2":
   "integrity" "sha512-s4h96KtLDUQlsENhMn1ar8t2bEa+q/YAtj8pPPdIjPDGBDIVNsrD9aXNWqspUe6AzKCIG0C1HZZLqLV7qpOBGA=="
   "resolved" "https://registry.npmjs.org/react-dom/-/react-dom-17.0.2.tgz"
   "version" "17.0.2"
@@ -10751,6 +10763,18 @@
   "version" "3.11.0"
   dependencies:
     "camelcase" "^5.0.0"
+
+"react-infinite-scroll-hook@^4.0.1":
+  "integrity" "sha512-UzRt1TPLnWV8TZ6Yw2k5vuVZX/d/gOm2NB1hrp48iTcVwV/4dSsUFDsnwrdTqioSl2n6wz2kfo8BowOczsaJRw=="
+  "resolved" "https://registry.npmjs.org/react-infinite-scroll-hook/-/react-infinite-scroll-hook-4.0.1.tgz"
+  "version" "4.0.1"
+  dependencies:
+    "react-intersection-observer-hook" "^2.0.3"
+
+"react-intersection-observer-hook@^2.0.3":
+  "integrity" "sha512-6LcrY/oUtZqn7HbwLTgSk43/KdZD5LZJsWUOwQB11aMPi3OkjyDcm2dwAQ1ydlbrSDlL4fHUNXisNt4B470UJg=="
+  "resolved" "https://registry.npmjs.org/react-intersection-observer-hook/-/react-intersection-observer-hook-2.0.3.tgz"
+  "version" "2.0.3"
 
 "react-is@^16.13.1", "react-is@^16.7.0", "react-is@^16.8.1":
   "integrity" "sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ=="
@@ -10887,7 +10911,7 @@
     "invariant" "^2.2.4"
     "tslib" "^1.0.0"
 
-"react@^17.0.2", "react@>=16.8":
+"react@^17.0.2":
   "integrity" "sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA=="
   "resolved" "https://registry.npmjs.org/react/-/react-17.0.2.tgz"
   "version" "17.0.2"

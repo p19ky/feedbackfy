@@ -1,5 +1,17 @@
-import { Box } from "@chakra-ui/layout";
 import React from "react";
+import { Box } from "@chakra-ui/layout";
+import { Lottie } from "@crello/react-lottie";
+
+import animationData from "../assets/lotties/working.json";
+
+const defaultLottieOptions = {
+  loop: true,
+  autoplay: true,
+  animationData: animationData,
+  rendererSettings: {
+    preserveAspectRatio: "xMidYMid slice",
+  },
+};
 
 const GlobalLoading = () => {
   return (
@@ -10,7 +22,7 @@ const GlobalLoading = () => {
       flex="1"
       minH="100vh"
     >
-      Loading...
+      <Lottie config={defaultLottieOptions} height={300} width={300} />
     </Box>
   );
 };

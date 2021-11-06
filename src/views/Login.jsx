@@ -10,15 +10,15 @@ import { Input } from "@chakra-ui/input";
 import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@chakra-ui/button";
 import { useController, useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useToast } from "@chakra-ui/toast";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 import { EMAIL_REGEX } from "../constants";
 import { loginWithEmailAndPassword } from "../state/user/userSlice";
 
 const Login = () => {
   const dispatch = useDispatch();
-  const userError = useSelector((state) => state.user.error);
   const toast = useToast();
 
   const {
@@ -51,14 +51,28 @@ const Login = () => {
 
   const signIn = React.useCallback(
     ({ email, password }) => {
-      dispatch(
-        loginWithEmailAndPassword({
-          email,
-          password,
-        })
-      );
+      try {
+        unwrapResult(
+          dispatch(
+            loginWithEmailAndPassword({
+              email,
+              password,
+            })
+          )
+        );
+      } catch (error) {
+        const errorMessage = error.code.split("/")[1].replaceAll("-", " ");
+
+        toast({
+          position: "top",
+          title: errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1),
+          status: "error",
+          duration: 9000,
+          isClosable: true,
+        });
+      }
     },
-    [dispatch]
+    [dispatch, toast]
   );
 
   React.useEffect(() => {
@@ -73,50 +87,8 @@ const Login = () => {
     return () => window.removeEventListener("keydown", handleEnterKeyPressDown);
   }, [handleSubmit, signIn]);
 
-  React.useEffect(() => {
-    if (!userError) return;
-
-    if (!!(userError?.code === "auth/user-not-found")) {
-      toast({
-        position: "top",
-        title: "User not found ¯\\_(ツ)_/¯",
-        description: "Email or password is incorrect",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
-    }
-
-    if (!!(userError?.code === "auth/wrong-password")) {
-      toast({
-        position: "top",
-        title: "Wrong password 👀",
-        description: "The password entered is incorrect",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
-    }
-
-    if (!!(userError?.code === "auth/too-many-requests")) {
-      toast({
-        position: "top",
-        title: "Too many requests",
-        description: "You tried too many times. Please try again later 😊",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
-    }
-  }, [userError, toast]);
-
   return (
-    <Flex
-      minH={"100vh"}
-      align={"center"}
-      justify={"center"}
-      bg={useColorModeValue("gray.50", "gray.800")}
-    >
+    <Flex minH={"100vh"} align={"center"} justify={"center"}>
       <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
         <Stack align={"center"}>
           <Heading fontSize={"4xl"}>Sign in to your account</Heading>

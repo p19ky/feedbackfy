@@ -10,8 +10,8 @@ const RequireAuth = ({ children }) => {
 
   if (!isUserInitialized) return <GlobalLoading />;
 
-  if (user.role !== ROLES.ADMIN) {
-    return <Navigate to="/" />;
+  if (user?.role !== ROLES.ADMIN) {
+    return <Navigate replace to="/" />;
   }
 
   return children;

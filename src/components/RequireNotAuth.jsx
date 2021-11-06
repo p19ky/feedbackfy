@@ -12,7 +12,7 @@ const RequireNotAuth = ({ children }) => {
 
   if (isAuthenticated) {
     // Redirect them to the / page if they're already authenticated.
-    return <Navigate to="/" />;
+    return <Navigate replace to="/" />;
   }
 
   return children;
