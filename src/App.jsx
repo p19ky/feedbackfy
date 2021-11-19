@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import RequireAuth from "./components/RequireAuth";
 import RequireNotAuth from "./components/RequireNotAuth";
 import RequireRoleAdmin from "./components/RequireRoleAdmin";
+import RequireRoleManager from "./components/RequireRoleManager";
 import GlobalLoading from "./components/GlobalLoading";
 import LayoutWithNavbar from "./components/LayoutWithNavbar";
 
@@ -12,6 +13,7 @@ const Login = React.lazy(() => import("./views/Login"));
 const Register = React.lazy(() => import("./views/Register"));
 const ForgotPassword = React.lazy(() => import("./views/ForgotPassword"));
 const Admin = React.lazy(() => import("./views/Admin"));
+const Manager = React.lazy(() => import("./views/Manager"));
 const Profile = React.lazy(() => import("./views/Profile"));
 const PageNotFound = React.lazy(() => import("./views/PageNotFound"));
 
@@ -42,6 +44,21 @@ const App = () => {
                 </LayoutWithNavbar>
               </React.Suspense>
             </RequireRoleAdmin>
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/manager"
+        element={
+          <RequireAuth>
+            <RequireRoleManager>
+              <React.Suspense fallback={<GlobalLoading />}>
+                <LayoutWithNavbar>
+                  <Manager />
+                </LayoutWithNavbar>
+              </React.Suspense>
+            </RequireRoleManager>
           </RequireAuth>
         }
       />
