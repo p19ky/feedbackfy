@@ -15,6 +15,7 @@ const ForgotPassword = React.lazy(() => import("./views/ForgotPassword"));
 const Admin = React.lazy(() => import("./views/Admin"));
 const Manager = React.lazy(() => import("./views/Manager"));
 const Profile = React.lazy(() => import("./views/Profile"));
+const PEGsUser = React.lazy(() => import("./views/PEGsUser"));
 const PageNotFound = React.lazy(() => import("./views/PageNotFound"));
 
 const App = () => {
@@ -106,6 +107,19 @@ const App = () => {
               <ForgotPassword />
             </React.Suspense>
           </RequireNotAuth>
+        }
+      />
+
+      <Route
+        path="/PEGsUser"
+        element={
+          <RequireAuth>
+            <React.Suspense fallback={<GlobalLoading />}>
+              <LayoutWithNavbar>
+                <PEGsUser />
+              </LayoutWithNavbar>
+            </React.Suspense>
+          </RequireAuth>
         }
       />
 
