@@ -155,7 +155,7 @@ const Admin = () => {
       });
 
       const indexCurrentUser = users.findIndex(
-        (user) => user.uid === currentlyEditRoleUser.uid
+        (u) => u.uid === currentlyEditRoleUser.uid
       );
 
       if (indexCurrentUser >= 0) {
