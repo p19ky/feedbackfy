@@ -26,7 +26,7 @@ import { Skeleton } from "@chakra-ui/skeleton";
 import { useToast } from "@chakra-ui/toast";
 
 import { db } from "../firebase";
-import { ROLES } from "../constants";
+import { ROLES } from "../utils/constants";
 
 const LIMIT_NR_USERS_PER_REQUEST = 2;
 

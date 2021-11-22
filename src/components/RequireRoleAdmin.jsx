@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import GlobalLoading from "./GlobalLoading";
-import { ROLES } from "../constants";
+import { ROLES } from "../utils/constants";
 
 const RequireRoleAdmin = ({ children }) => {
   const isUserInitialized = useSelector((state) => state.user.initialized);

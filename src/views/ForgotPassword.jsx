@@ -8,7 +8,7 @@ import { useController, useForm } from "react-hook-form";
 import { getAuth, sendPasswordResetEmail } from "@firebase/auth";
 import { useToast } from "@chakra-ui/toast";
 
-import { EMAIL_REGEX } from "../constants";
+import { EMAIL_REGEX } from "../utils/constants";
 
 const ForgotPassword = () => {
   const toast = useToast();
