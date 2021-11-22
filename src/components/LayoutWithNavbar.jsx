@@ -26,7 +26,7 @@ import { RiAdminLine, RiLogoutBoxLine } from "react-icons/ri";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 
 import { logout } from "../state/user/userSlice";
-import { ROLES } from "../constants";
+import { ROLES } from "../utils/constants";
 
 const LayoutWithNavbar = ({ children: layoutChildren }) => {
   const dispatch = useDispatch();
@@ -144,8 +144,8 @@ const SidebarContent = (props) => {
             Admin
           </NavItem>
         )}
-        <NavItem icon={RiChatPollFill} to={"/PEGsUser"}>
-          My PEGs
+        <NavItem icon={RiChatPollFill} to={"/pegs"}>
+          Pegs
         </NavItem>
         {user?.role === ROLES.MANAGER && (
           <NavItem icon={BsFillPersonLinesFill} to={"/manager"}>

@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { Timestamp, setDoc, doc } from "firebase/firestore";
 
 import { auth, db } from "../../../firebase";
-import { ROLES } from "../../../constants";
+import { ROLES } from "../../../utils/constants";
 
 const registerWithEmailAndPassword = createAsyncThunk(
   "auth/register",

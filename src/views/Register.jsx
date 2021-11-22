@@ -14,7 +14,7 @@ import { useDispatch } from "react-redux";
 import { useToast } from "@chakra-ui/toast";
 import { unwrapResult } from "@reduxjs/toolkit";
 
-import { EMAIL_REGEX } from "../constants";
+import { EMAIL_REGEX } from "../utils/constants";
 import { registerWithEmailAndPassword } from "../state/user/userSlice";
 
 const Register = () => {
