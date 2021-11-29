@@ -46,7 +46,7 @@ const PegRequestCard = ({ pr }) => {
         setIsEvaluated(null);
       }
     })();
-  }, []);
+  }, [pr.docId]);
 
   return (
     <Flex
@@ -91,7 +91,6 @@ const PegRequestCard = ({ pr }) => {
             {`${pr.projectName} - ${pr.customerName}`}
           </Heading>
           <Divider />
-          <chakra.p mt={2}>Employee: {pr.employeeName}</chakra.p>
           <chakra.p mt={2}>Project name: {pr.projectName}</chakra.p>
           <chakra.p mt={2}>Evaluation by: {pr.projectManager}</chakra.p>
           <chakra.p mt={2}>Status: {pr.status}</chakra.p>
@@ -126,8 +125,8 @@ const PegRequestCard = ({ pr }) => {
               src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
               alt="avatar"
             />
-            <Text color={creatorNameColor} fontWeight="700" cursor="pointer">
-              Khatab wedaa
+            <Text color={creatorNameColor} fontWeight="700">
+              {pr.employeeName}
             </Text>
           </Flex>
         </Flex>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Flex, Heading, Stack, Link } from "@chakra-ui/layout";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import {
@@ -20,6 +21,7 @@ import { registerWithEmailAndPassword } from "../state/user/userSlice";
 const Register = () => {
   const dispatch = useDispatch();
   const toast = useToast();
+  const navigate = useNavigate();
 
   const {
     control,
@@ -60,16 +62,20 @@ const Register = () => {
   });
 
   const signUp = React.useCallback(
-    ({ email, password }) => {
+    async ({ email, password }) => {
       try {
-        unwrapResult(
-          dispatch(
+        const result = unwrapResult(
+          await dispatch(
             registerWithEmailAndPassword({
               email,
               password,
             })
           )
         );
+
+        if (result) {
+          navigate("/profile");
+        }
       } catch (error) {
         const errorMessage = error.code.split("/")[1].replaceAll("-", " ");
 
@@ -82,7 +88,7 @@ const Register = () => {
         });
       }
     },
-    [dispatch, toast]
+    [dispatch, toast, navigate]
   );
 
   React.useEffect(() => {

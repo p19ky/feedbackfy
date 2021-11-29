@@ -178,7 +178,6 @@ const SidebarContent = (props) => {
 
 const NavItem = (props) => {
   const { icon, children, to, ...rest } = props;
-  const iconGroupHoverColor = useColorModeValue("gray.600", "gray.300");
   const bgColorContainer = useColorModeValue("gray.100", "gray.900");
   let resolved = useResolvedPath(to);
   let match = useMatch({ path: resolved.pathname, end: true });

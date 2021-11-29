@@ -1,5 +1,4 @@
 import React from "react";
-import { Box } from "@chakra-ui/layout";
 import { collection, getDocs } from "firebase/firestore";
 
 import { db } from "../firebase";

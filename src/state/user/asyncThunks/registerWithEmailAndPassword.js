@@ -20,9 +20,12 @@ const registerWithEmailAndPassword = createAsyncThunk(
         uid: response.user.uid,
         createdAt: Timestamp.now(),
         role: ROLES.USER,
+        isProfileCompleted: false,
       };
 
-      setDoc(doc(db, "users", response.user.uid), newUserData);
+      await setDoc(doc(db, "users", response.user.uid), newUserData);
+
+      return newUserData;
     } catch (error) {
       console.log("register error", error);
       return rejectWithValue(error);

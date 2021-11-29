@@ -27,6 +27,8 @@ import { useToast } from "@chakra-ui/toast";
 
 import { db } from "../firebase";
 import { ROLES } from "../utils/constants";
+import { useColorModeValue } from "@chakra-ui/color-mode";
+import { useSelector } from "react-redux";
 
 const LIMIT_NR_USERS_PER_REQUEST = 2;
 
@@ -52,6 +54,8 @@ const Admin = () => {
     setIsOpenEditRole(true);
   };
   const cancelEditRoleRef = React.useRef();
+
+  const currentUser = useSelector((state) => state.user.value);
 
   const toast = useToast();
 
@@ -185,7 +189,11 @@ const Admin = () => {
   };
 
   return (
-    <Flex direction="column" w="100%">
+    <Flex
+      direction="column"
+      w="100%"
+      bg={useColorModeValue("white", "gray.700")}
+    >
       <Table variant="sm" boxShadow="lg">
         <CustomThead>
           <Tr>
@@ -213,23 +221,25 @@ const Admin = () => {
             </>
           )}
           {React.Children.toArray(
-            users.map((user) => (
-              <CustomBodyTr>
-                <Td>
-                  <Center>{user.email}</Center>
-                </Td>
-                <Td>
-                  <Center>{user.role}</Center>
-                </Td>
-                <Td>
-                  <Center>
-                    <Button onClick={() => onOpenEditRole(user)}>
-                      Edit Role
-                    </Button>
-                  </Center>
-                </Td>
-              </CustomBodyTr>
-            ))
+            users.map((user) =>
+              user.uid !== currentUser.uid ? (
+                <CustomBodyTr>
+                  <Td>
+                    <Center>{user.email}</Center>
+                  </Td>
+                  <Td>
+                    <Center>{user.role}</Center>
+                  </Td>
+                  <Td>
+                    <Center>
+                      <Button onClick={() => onOpenEditRole(user)}>
+                        Edit Role
+                      </Button>
+                    </Center>
+                  </Td>
+                </CustomBodyTr>
+              ) : null
+            )
           )}
           <AlertDialog
             isOpen={isOpenEditRole}
