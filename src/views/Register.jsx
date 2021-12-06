@@ -21,7 +21,6 @@ import { registerWithEmailAndPassword } from "../state/user/userSlice";
 const Register = () => {
   const dispatch = useDispatch();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const {
     control,
@@ -64,7 +63,7 @@ const Register = () => {
   const signUp = React.useCallback(
     async ({ email, password }) => {
       try {
-        const result = unwrapResult(
+        unwrapResult(
           await dispatch(
             registerWithEmailAndPassword({
               email,
@@ -72,10 +71,6 @@ const Register = () => {
             })
           )
         );
-
-        if (result) {
-          navigate("/profile");
-        }
       } catch (error) {
         const errorMessage = error.code.split("/")[1].replaceAll("-", " ");
 
@@ -88,7 +83,7 @@ const Register = () => {
         });
       }
     },
-    [dispatch, toast, navigate]
+    [dispatch, toast]
   );
 
   React.useEffect(() => {

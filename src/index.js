@@ -15,11 +15,11 @@ ReactDOM.render(
     <ColorModeScript />
     <ChakraProvider theme={theme}>
       <Provider store={store}>
-        <AuthProvider>
-          <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
             <App />
-          </BrowserRouter>
-        </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </Provider>
     </ChakraProvider>
   </StrictMode>,

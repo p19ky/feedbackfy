@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import { Button } from "@chakra-ui/button";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { Image } from "@chakra-ui/image";
@@ -11,14 +12,26 @@ import {
   HStack,
   Spacer,
   Text,
+  VStack,
 } from "@chakra-ui/layout";
 import { chakra } from "@chakra-ui/system";
-import { collection, getDocs, query, where } from "@firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "@firebase/firestore";
 import { db } from "../firebase";
+import { Skeleton } from "@chakra-ui/skeleton";
 
-const PegRequestCard = ({ pr }) => {
+const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
   const [readMore, setReadMore] = React.useState(false);
   const [isEvaluated, setIsEvaluated] = React.useState(null);
+  const [project, setProject] = React.useState(null);
+
+  const currentUser = useSelector((state) => state.user.value);
 
   const containerFlexBg = useColorModeValue("#F9FAFB", "gray.600");
   const containerBoxBg = useColorModeValue("white", "gray.800");
@@ -26,7 +39,10 @@ const PegRequestCard = ({ pr }) => {
   const titleColor = useColorModeValue("gray.700", "white");
   const creatorNameColor = useColorModeValue("gray.700", "gray.200");
 
+  // Check if peg is evaluated.
   React.useEffect(() => {
+    if (!pr) return;
+
     (async () => {
       try {
         const response = await getDocs(
@@ -46,91 +62,288 @@ const PegRequestCard = ({ pr }) => {
         setIsEvaluated(null);
       }
     })();
-  }, [pr.docId]);
+  }, [pr]);
+
+  // Get peg's complete project informations
+  React.useEffect(() => {
+    if (!pr) return;
+
+    (async () => {
+      let project = null;
+      let projectCustomer = null;
+      let projectTeam = null;
+      let allMembers = null;
+      let projectManager = null;
+      let pegCreator = null;
+
+      // get peg creator
+      try {
+        const responseUsers = await getDoc(doc(db, "users", pr.creatorUid));
+
+        if (!responseUsers.exists)
+          throw new Error("Project creator does not exist.");
+
+        pegCreator = {
+          docId: responseUsers.id,
+          ...responseUsers.data(),
+        };
+      } catch (error) {
+        console.error(
+          `no project creatro found for this peg request: ${pr.docId}`,
+          error
+        );
+        return;
+      }
+
+      // get project
+      try {
+        const responseProjects = await getDoc(
+          doc(db, "projects", pr.projectUid)
+        );
+
+        if (!responseProjects.exists)
+          throw new Error("Project does not exist.");
+
+        project = {
+          docId: responseProjects.id,
+          ...responseProjects.data(),
+        };
+      } catch (error) {
+        console.error(
+          `no project found for this peg request: ${pr.docId}`,
+          error
+        );
+        return;
+      }
+
+      // get project customer
+      try {
+        const responseCustomers = await getDoc(
+          doc(db, "customers", project.customerUid)
+        );
+
+        if (!responseCustomers.exists)
+          throw new Error("Customer does not exist.");
+
+        projectCustomer = {
+          docId: responseCustomers.id,
+          ...responseCustomers.data(),
+        };
+      } catch (error) {
+        console.error(
+          `no customer found for this project: ${pr.projectUid}, peg: ${pr.docId}`,
+          error
+        );
+        return;
+      }
+
+      // get project team
+      try {
+        const responseTeams = await getDoc(doc(db, "teams", project.teamUid));
+
+        if (!responseTeams.exists) throw new Error("Team does not exist.");
+
+        projectTeam = {
+          docId: responseTeams.id,
+          ...responseTeams.data(),
+        };
+      } catch (error) {
+        console.error(
+          `no team found for this project: ${pr.projectUid}, peg: ${pr.docId}`,
+          error
+        );
+        return;
+      }
+
+      // get project team members
+      try {
+        if (!projectTeam?.members?.length)
+          throw new Error("No team members found.");
+
+        const allPromises = [];
+
+        projectTeam.members.forEach((memberUid) =>
+          allPromises.push(getDoc(doc(db, "users", memberUid)))
+        );
+
+        const allMembersResponse = await Promise.all(allPromises);
+        allMembers = allMembersResponse.map((e) => e?.data());
+        allMembers.filter((e) => e);
+
+        if (allMembers.length !== projectTeam.members.length)
+          throw new Error("could not get every team member");
+      } catch (error) {
+        console.error(
+          `error getting team members for this team: ${projectTeam.docId}, peg: ${pr.docId}`,
+          error
+        );
+        return;
+      }
+
+      // find out who is the manager of the project (it is one of the team members)
+      try {
+        allMembers.some((m) => {
+          if (m.role === "manager") {
+            projectManager = m;
+            return true;
+          } else return false;
+        });
+
+        if (!projectManager) throw new Error("could not get project manager");
+      } catch (error) {
+        console.error(
+          `error getting project manager from this team: ${projectTeam.docId}, peg: ${pr.docId}`,
+          error
+        );
+        return;
+      }
+
+      const resultingProjectObject = {
+        ...project,
+        customer: projectCustomer,
+        team: { ...projectTeam, members: allMembers },
+        projectManager,
+        pegCreator,
+      };
+
+      setProject(resultingProjectObject);
+      console.log(resultingProjectObject);
+    })();
+  }, [pr]);
 
   return (
     <Flex
       bg={containerFlexBg}
-      p={50}
       w="full"
+      mb={isLast ? 0 : 10}
       alignItems="center"
       justifyContent="center"
     >
-      <Box
-        mx="auto"
-        px={8}
-        py={4}
-        rounded="lg"
-        shadow="lg"
-        bg={containerBoxBg}
-        w="100%"
-      >
-        <Flex justifyContent="space-between" alignItems="center">
-          <chakra.span fontSize="sm" color={dateColor}>
-            {`Created at ${new Date(
-              pr.dateOfPeg.seconds * 1000
-            ).getDate()}.${new Date(
-              pr.dateOfPeg.seconds * 1000
-            ).getMonth()}.${new Date(
-              pr.dateOfPeg.seconds * 1000
-            ).getFullYear()}`}
-          </chakra.span>
-          <Spacer />
-          <HStack spacing={2}>
-            <Badge>Peg Request</Badge>
-            {isEvaluated !== null && (
-              <Badge colorScheme={isEvaluated ? "green" : "red"}>
-                {isEvaluated ? "Evaluated" : "Not Evaluated Yet"}
-              </Badge>
-            )}
-          </HStack>
-        </Flex>
-
-        <Box mt={4}>
-          <Heading fontSize="2xl" color={titleColor} fontWeight="700" mb={2}>
-            {`${pr.projectName} - ${pr.customerName}`}
-          </Heading>
-          <Divider />
-          <chakra.p mt={2}>Project name: {pr.projectName}</chakra.p>
-          <chakra.p mt={2}>Evaluation by: {pr.projectManager}</chakra.p>
-          <chakra.p mt={2}>Status: {pr.status}</chakra.p>
-
-          {readMore && (
-            <>
-              <chakra.p mt={2}>test</chakra.p>
-              <chakra.p mt={2}>test</chakra.p>
-              <chakra.p mt={2}>test</chakra.p>
-              <chakra.p mt={2}>test</chakra.p>
-            </>
-          )}
-        </Box>
-
-        <Flex justifyContent="space-between" alignItems="center" mt={4}>
-          <HStack spacing={2}>
-            <Button onClick={() => setReadMore((current) => !current)}>
-              {readMore ? "Read Less" : "Read More"}
-            </Button>
-
-            <Button>Evaluate</Button>
-          </HStack>
-
-          <Flex alignItems="center">
-            <Image
-              mx={4}
-              w={10}
-              h={10}
-              rounded="full"
-              fit="cover"
-              display={{ base: "none", sm: "block" }}
-              src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
-              alt="avatar"
-            />
-            <Text color={creatorNameColor} fontWeight="700">
-              {pr.employeeName}
-            </Text>
+      {!project ? (
+        <Skeleton
+          startColor="teal.50"
+          endColor="green.900"
+          height="200px"
+          width="100%"
+        />
+      ) : (
+        <Box
+          mx="auto"
+          px={8}
+          py={4}
+          rounded="lg"
+          shadow="lg"
+          bg={containerBoxBg}
+          w="100%"
+        >
+          <Flex justifyContent="space-between" alignItems="center">
+            <chakra.span fontSize="sm" color={dateColor}>
+              {`Created at ${new Date(
+                pr.dateOfPeg.seconds * 1000
+              ).getDate()}.${new Date(
+                pr.dateOfPeg.seconds * 1000
+              ).getMonth()}.${new Date(
+                pr.dateOfPeg.seconds * 1000
+              ).getFullYear()}`}
+            </chakra.span>
+            <Spacer />
+            <HStack spacing={2}>
+              <Badge>Peg Request</Badge>
+              {isEvaluated !== null && (
+                <Badge colorScheme={isEvaluated ? "green" : "red"}>
+                  {isEvaluated ? "Evaluated" : "Not Evaluated Yet"}
+                </Badge>
+              )}
+            </HStack>
           </Flex>
-        </Flex>
-      </Box>
+
+          <Box mt={4}>
+            <Flex
+              direction="hortizontal"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Heading
+                fontSize="2xl"
+                color={titleColor}
+                fontWeight="700"
+                mb={2}
+              >
+                {`${project.name}`}
+              </Heading>
+              <Heading fontSize="xl" color={titleColor} fontWeight="700" mb={1}>
+                &nbsp;{`by ${project.customer.name}`}
+              </Heading>
+            </Flex>
+
+            <Divider />
+            <chakra.p mt={2}>
+              {`Needs Evaluation from ${
+                project.projectManager.uid === currentUser.uid
+                  ? " You"
+                  : project.projectManager.displayName
+              }`}
+            </chakra.p>
+
+            {readMore && (
+              <>
+                <chakra.p mt={2}>test</chakra.p>
+                <chakra.p mt={2}>test</chakra.p>
+                <chakra.p mt={2}>test</chakra.p>
+                <VStack mt={2}>
+                  {React.Children.toArray(
+                    project.team.members.map((m) => (
+                      <Flex alignItems="center">
+                        <Image
+                          mx={4}
+                          w={10}
+                          h={10}
+                          rounded="full"
+                          fit="cover"
+                          display={{ base: "none", sm: "block" }}
+                          src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
+                          alt="avatar"
+                        />
+                        <Text color={creatorNameColor} fontWeight="700">
+                          {m.displayName}
+                        </Text>
+                      </Flex>
+                    ))
+                  )}
+                </VStack>
+              </>
+            )}
+          </Box>
+
+          <Flex justifyContent="space-between" alignItems="center" mt={4}>
+            <HStack spacing={2}>
+              <Button onClick={() => setReadMore((current) => !current)}>
+                {readMore ? "Read Less" : "Read More"}
+              </Button>
+
+              {!isEvaluated && pr.evaluatorUid === currentUser.uid && (
+                <Button>Evaluate</Button>
+              )}
+            </HStack>
+
+            <Flex alignItems="center">
+              <Image
+                mx={4}
+                w={10}
+                h={10}
+                rounded="full"
+                fit="cover"
+                display={{ base: "none", sm: "block" }}
+                src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
+                alt="avatar"
+              />
+              <Text color={creatorNameColor} fontWeight="700">
+                {project.pegCreator.displayName}
+              </Text>
+            </Flex>
+          </Flex>
+        </Box>
+      )}
     </Flex>
   );
 };

@@ -24,7 +24,7 @@ const PegRequests = () => {
   return (
     <>
       {React.Children.toArray(
-        pegRequests.map((pr) => <PegRequestCard pr={pr} />)
+        pegRequests.map((pr) => <PegRequestCard pegRequest={pr} />)
       )}
     </>
   );
