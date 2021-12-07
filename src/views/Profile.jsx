@@ -181,7 +181,6 @@ const Profile = () => {
               width="fit-content"
               rounded={"md"}
               variant="left-accent"
-              k
             >
               <AlertIcon />
               <Text fontSize="sm">

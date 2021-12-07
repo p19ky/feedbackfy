@@ -19,7 +19,7 @@ import {
   useDisclosure,
   Button,
 } from "@chakra-ui/react";
-import { RiChatPollFill } from "react-icons/ri";
+import { RiChatPollFill, RiFeedbackFill } from "react-icons/ri";
 import { FiMenu } from "react-icons/fi";
 import { MdHome } from "react-icons/md";
 import { RiAdminLine, RiLogoutBoxLine } from "react-icons/ri";
@@ -144,14 +144,17 @@ const SidebarContent = (props) => {
             Admin
           </NavItem>
         )}
-        <NavItem icon={RiChatPollFill} to={"/pegs"}>
-          Pegs
-        </NavItem>
         {user?.role === ROLES.MANAGER && (
           <NavItem icon={BsFillPersonLinesFill} to={"/manager"}>
             Manager
           </NavItem>
         )}
+        <NavItem icon={RiChatPollFill} to={"/pegs"}>
+          Pegs
+        </NavItem>
+        <NavItem icon={RiFeedbackFill} to={"/feedbacks"}>
+          Feedbacks
+        </NavItem>
         {/* <NavItem icon={HiCode} onClick={integrations.onToggle}>
           Integrations
           <Icon

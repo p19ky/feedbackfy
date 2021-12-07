@@ -1,8 +1,8 @@
 import React from "react";
-import { Text } from "@chakra-ui/layout";
+import { Heading } from "@chakra-ui/layout";
 
 const Home = () => {
-  return <Text>Home</Text>;
+  return <Heading align="center">Home</Heading>;
 };
 
 export default Home;

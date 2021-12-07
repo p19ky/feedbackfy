@@ -5,12 +5,10 @@ import { useColorModeValue } from "@chakra-ui/color-mode";
 import { Image } from "@chakra-ui/image";
 import {
   Badge,
-  Box,
   Divider,
   Flex,
   Heading,
   HStack,
-  Spacer,
   Text,
   VStack,
 } from "@chakra-ui/layout";
@@ -35,7 +33,7 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
   const containerFlexBg = useColorModeValue("#F9FAFB", "gray.600");
   const containerBoxBg = useColorModeValue("white", "gray.800");
-  const dateColor = useColorModeValue("gray.600", "gray.400");
+  const subtleText = useColorModeValue("gray.600", "gray.400");
   const titleColor = useColorModeValue("gray.700", "white");
   const creatorNameColor = useColorModeValue("gray.700", "gray.200");
 
@@ -78,18 +76,18 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
       // get peg creator
       try {
-        const responseUsers = await getDoc(doc(db, "users", pr.creatorUid));
+        const responseCreator = await getDoc(doc(db, "users", pr.creatorUid));
 
-        if (!responseUsers.exists)
+        if (!responseCreator.exists)
           throw new Error("Project creator does not exist.");
 
         pegCreator = {
-          docId: responseUsers.id,
-          ...responseUsers.data(),
+          docId: responseCreator.id,
+          ...responseCreator.data(),
         };
       } catch (error) {
         console.error(
-          `no project creatro found for this peg request: ${pr.docId}`,
+          `no project creator found for this peg request: ${pr.docId}`,
           error
         );
         return;
@@ -97,16 +95,15 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
       // get project
       try {
-        const responseProjects = await getDoc(
+        const responseProject = await getDoc(
           doc(db, "projects", pr.projectUid)
         );
 
-        if (!responseProjects.exists)
-          throw new Error("Project does not exist.");
+        if (!responseProject.exists) throw new Error("Project does not exist.");
 
         project = {
-          docId: responseProjects.id,
-          ...responseProjects.data(),
+          docId: responseProject.id,
+          ...responseProject.data(),
         };
       } catch (error) {
         console.error(
@@ -118,16 +115,16 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
       // get project customer
       try {
-        const responseCustomers = await getDoc(
+        const responseCustomer = await getDoc(
           doc(db, "customers", project.customerUid)
         );
 
-        if (!responseCustomers.exists)
+        if (!responseCustomer.exists)
           throw new Error("Customer does not exist.");
 
         projectCustomer = {
-          docId: responseCustomers.id,
-          ...responseCustomers.data(),
+          docId: responseCustomer.id,
+          ...responseCustomer.data(),
         };
       } catch (error) {
         console.error(
@@ -139,13 +136,13 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
       // get project team
       try {
-        const responseTeams = await getDoc(doc(db, "teams", project.teamUid));
+        const responseTeam = await getDoc(doc(db, "teams", project.teamUid));
 
-        if (!responseTeams.exists) throw new Error("Team does not exist.");
+        if (!responseTeam.exists) throw new Error("Team does not exist.");
 
         projectTeam = {
-          docId: responseTeams.id,
-          ...responseTeams.data(),
+          docId: responseTeam.id,
+          ...responseTeam.data(),
         };
       } catch (error) {
         console.error(
@@ -223,11 +220,14 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
         <Skeleton
           startColor="teal.50"
           endColor="green.900"
-          height="200px"
+          height="250px"
           width="100%"
+          rounded="lg"
         />
       ) : (
-        <Box
+        <VStack
+          spacing={4}
+          alignItems={"stretch"}
           mx="auto"
           px={8}
           py={4}
@@ -236,17 +236,17 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
           bg={containerBoxBg}
           w="100%"
         >
+          {/* HEADER */}
           <Flex justifyContent="space-between" alignItems="center">
-            <chakra.span fontSize="sm" color={dateColor}>
+            <chakra.span fontSize="sm" color={subtleText}>
               {`Created at ${new Date(
                 pr.dateOfPeg.seconds * 1000
               ).getDate()}.${new Date(
                 pr.dateOfPeg.seconds * 1000
               ).getMonth()}.${new Date(
                 pr.dateOfPeg.seconds * 1000
-              ).getFullYear()}`}
+              ).getFullYear()} by ${project.pegCreator.displayName}`}
             </chakra.span>
-            <Spacer />
             <HStack spacing={2}>
               <Badge>Peg Request</Badge>
               {isEvaluated !== null && (
@@ -257,27 +257,17 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
             </HStack>
           </Flex>
 
-          <Box mt={4}>
-            <Flex
-              direction="hortizontal"
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Heading
-                fontSize="2xl"
-                color={titleColor}
-                fontWeight="700"
-                mb={2}
-              >
-                {`${project.name}`}
-              </Heading>
-              <Heading fontSize="xl" color={titleColor} fontWeight="700" mb={1}>
-                &nbsp;{`by ${project.customer.name}`}
-              </Heading>
-            </Flex>
+          {/* BODY */}
+          <VStack>
+            <Heading fontSize="4xl" color={titleColor} fontWeight="700">
+              {`${project.name}`}
+            </Heading>
 
             <Divider />
-            <chakra.p mt={2}>
+
+            <chakra.p>{`Project for ${project.customer.name}`}</chakra.p>
+
+            <chakra.p>
               {`Needs Evaluation from ${
                 project.projectManager.uid === currentUser.uid
                   ? " You"
@@ -285,37 +275,42 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
               }`}
             </chakra.p>
 
+            <chakra.p>Fiscal Year: {pr.fiscalYear}</chakra.p>
+
             {readMore && (
               <>
-                <chakra.p mt={2}>test</chakra.p>
-                <chakra.p mt={2}>test</chakra.p>
-                <chakra.p mt={2}>test</chakra.p>
-                <VStack mt={2}>
-                  {React.Children.toArray(
-                    project.team.members.map((m) => (
-                      <Flex alignItems="center">
-                        <Image
-                          mx={4}
-                          w={10}
-                          h={10}
-                          rounded="full"
-                          fit="cover"
-                          display={{ base: "none", sm: "block" }}
-                          src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
-                          alt="avatar"
-                        />
-                        <Text color={creatorNameColor} fontWeight="700">
-                          {m.displayName}
-                        </Text>
-                      </Flex>
-                    ))
-                  )}
-                </VStack>
+                {project.team.members.length && (
+                  <>
+                    <Divider />
+                    <Flex flexWrap="wrap">
+                      {React.Children.toArray(
+                        project.team.members.map((m) => (
+                          <Flex alignItems="center">
+                            <Image
+                              mx={4}
+                              w={10}
+                              h={10}
+                              rounded="full"
+                              fit="cover"
+                              display={{ base: "none", sm: "block" }}
+                              src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
+                              alt="avatar"
+                            />
+                            <Text color={creatorNameColor} fontWeight="700">
+                              {m.displayName}
+                            </Text>
+                          </Flex>
+                        ))
+                      )}
+                    </Flex>
+                  </>
+                )}
               </>
             )}
-          </Box>
+          </VStack>
 
-          <Flex justifyContent="space-between" alignItems="center" mt={4}>
+          {/* FOOTER */}
+          <Flex justifyContent="space-between" alignItems="center">
             <HStack spacing={2}>
               <Button onClick={() => setReadMore((current) => !current)}>
                 {readMore ? "Read Less" : "Read More"}
@@ -325,24 +320,8 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
                 <Button>Evaluate</Button>
               )}
             </HStack>
-
-            <Flex alignItems="center">
-              <Image
-                mx={4}
-                w={10}
-                h={10}
-                rounded="full"
-                fit="cover"
-                display={{ base: "none", sm: "block" }}
-                src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
-                alt="avatar"
-              />
-              <Text color={creatorNameColor} fontWeight="700">
-                {project.pegCreator.displayName}
-              </Text>
-            </Flex>
           </Flex>
-        </Box>
+        </VStack>
       )}
     </Flex>
   );

@@ -16,6 +16,7 @@ const Admin = React.lazy(() => import("./views/Admin"));
 const Manager = React.lazy(() => import("./views/Manager"));
 const Profile = React.lazy(() => import("./views/Profile"));
 const Pegs = React.lazy(() => import("./views/Pegs"));
+const Feedbacks = React.lazy(() => import("./views/Feedbacks"));
 const PageNotFound = React.lazy(() => import("./views/PageNotFound"));
 
 const App = () => {
@@ -117,6 +118,19 @@ const App = () => {
             <React.Suspense fallback={<GlobalLoading />}>
               <LayoutWithNavbar>
                 <Pegs />
+              </LayoutWithNavbar>
+            </React.Suspense>
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/feedbacks"
+        element={
+          <RequireAuth>
+            <React.Suspense fallback={<GlobalLoading />}>
+              <LayoutWithNavbar>
+                <Feedbacks />
               </LayoutWithNavbar>
             </React.Suspense>
           </RequireAuth>
