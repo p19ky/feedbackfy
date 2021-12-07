@@ -277,6 +277,8 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
             <chakra.p>Fiscal Year: {pr.fiscalYear}</chakra.p>
 
+            <chakra.p>Personnel Number: {project.team.members.length}</chakra.p>
+
             {readMore && (
               <>
                 {project.team.members.length && (
