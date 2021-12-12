@@ -29,6 +29,7 @@ import { logout } from "../state/user/userSlice";
 import { ROLES } from "../utils/constants";
 
 const LayoutWithNavbar = ({ children: layoutChildren }) => {
+  const currentUser = useSelector((state) => state.user.value);
   const dispatch = useDispatch();
   const sidebar = useDisclosure();
 
@@ -86,6 +87,9 @@ const LayoutWithNavbar = ({ children: layoutChildren }) => {
               src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
               cursor="pointer"
             />
+            <Text ml={2} fontWeight="bold">
+              {currentUser?.email?.split("@")[0]}
+            </Text>
           </Flex>
         </Flex>
 

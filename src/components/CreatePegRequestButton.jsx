@@ -1,13 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "@firebase/firestore";
+import { collection, getDocs, query, where } from "@firebase/firestore";
 import { Button } from "@chakra-ui/button";
 import { Flex, Text } from "@chakra-ui/layout";
 import {
@@ -86,7 +79,7 @@ const CreatePegRequestButton = () => {
       try {
         const q = query(
           collection(db, "projects"),
-          where("pegRequested", "==", false)
+          where("currentlyInPegRequest", "==", false)
         );
         const response = await getDocs(q);
 
@@ -240,7 +233,7 @@ const CreatePegRequestButton = () => {
                     <Button
                       colorScheme="blue"
                       onClick={handleSubmit(createNewPegRequest)}
-                      ml={3}
+                      ml={4}
                       isDisabled={loadingNewPegRequest}
                       isLoading={loadingNewPegRequest}
                     >

@@ -10,10 +10,9 @@ import { Input } from "@chakra-ui/input";
 import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@chakra-ui/button";
 import { useController, useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useToast } from "@chakra-ui/toast";
 import { unwrapResult } from "@reduxjs/toolkit";
-import { useNavigate } from "react-router-dom";
 
 import { EMAIL_REGEX } from "../utils/constants";
 import { loginWithEmailAndPassword } from "../state/user/userSlice";
@@ -21,8 +20,6 @@ import { loginWithEmailAndPassword } from "../state/user/userSlice";
 const Login = () => {
   const dispatch = useDispatch();
   const toast = useToast();
-  const currentUser = useSelector((state) => state.user.value);
-  const navigate = useNavigate();
 
   const {
     control,
