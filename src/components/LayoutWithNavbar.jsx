@@ -153,12 +153,12 @@ const SidebarContent = (props) => {
             Manager
           </NavItem>
         )}
-        <NavItem icon={RiChatPollFill} to={"/pegs"}>
+        {user?.role !== ROLES.ADMIN && <NavItem icon={RiChatPollFill} to={"/pegs"}>
           Pegs
-        </NavItem>
-        <NavItem icon={RiFeedbackFill} to={"/feedbacks"}>
+        </NavItem>}
+        {user?.role !== ROLES.ADMIN && <NavItem icon={RiFeedbackFill} to={"/feedbacks"}>
           Feedbacks
-        </NavItem>
+        </NavItem>}
         {/* <NavItem icon={HiCode} onClick={integrations.onToggle}>
           Integrations
           <Icon

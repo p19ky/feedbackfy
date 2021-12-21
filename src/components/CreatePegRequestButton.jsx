@@ -1,8 +1,19 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { collection, getDocs, query, where } from "@firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  getDoc,
+  doc,
+  Timestamp,
+  addDoc,
+  updateDoc
+} from "@firebase/firestore";
 import { Button } from "@chakra-ui/button";
-import { Flex, Text } from "@chakra-ui/layout";
+import { Flex, Text, VStack } from "@chakra-ui/layout";
+import { Input } from "@chakra-ui/react";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -23,13 +34,17 @@ import { useColorModeValue } from "@chakra-ui/color-mode";
 import { useToast } from "@chakra-ui/toast";
 
 import { db } from "../firebase";
+import { PROJECT_DAYS_EVALUATED_VALUES, ROLES } from "../utils/constants";
 
 const CreatePegRequestButton = () => {
   const [loadingNewPegRequest, setLoadingNewPegRequest] = React.useState(false);
   const [isOpenDialog, setIsOpenDialog] = React.useState(false);
   const [currentUserTeams, setCurrentUserTeams] = React.useState(undefined);
   const [selectedProject, setSelectedProject] = React.useState(null);
-  const [selectableProjects, setSelectableProjects] = React.useState(undefined);
+  const [selectableProjects, setSelectableProjects] = React.useState([]);
+  const [selectedProjectsCustomer, setSelectedProjectsCustomer] =
+    React.useState(null);
+  const [selectedProjectsTeam, setSelectedProjectsTeam] = React.useState([]);
 
   const cancelDialogRef = React.useRef();
 
@@ -71,41 +86,133 @@ const CreatePegRequestButton = () => {
     })();
   }, [currentUser]);
 
+  const getSelectableProjects = async () => {
+    try {
+      const q = query(
+        collection(db, "projects"),
+        where("currentlyInPegRequest", "==", false)
+      );
+      const response = await getDocs(q);
+
+      if (response.empty) {
+        setSelectableProjects([]);
+      } else {
+        setSelectableProjects(
+          response.docs.map((doc) => ({ docId: doc.id, ...doc.data() }))
+        );
+      }
+    } catch (error) {
+      console.error("could not get projects", error);
+    }
+  };
+
   // get selectable projects
   React.useEffect(() => {
     if (!currentUser || !currentUserTeams?.length) return;
 
-    (async () => {
-      try {
-        const q = query(
-          collection(db, "projects"),
-          where("currentlyInPegRequest", "==", false)
-        );
-        const response = await getDocs(q);
-
-        if (response.empty) {
-          setSelectableProjects([]);
-        } else {
-          setSelectableProjects(
-            response.docs.map((doc) => ({ docId: doc.id, ...doc.data() }))
-          );
-        }
-      } catch (error) {
-        console.error("could not get projects", error);
-      }
-    })();
+    getSelectableProjects();
   }, [currentUser, currentUserTeams]);
 
-  const onCloseDialog = () => {
+  // get customer for selectedProject
+  React.useEffect(() => {
+    if (!selectedProject) return;
+
+    (async () => {
+      try {
+        const customer = await getDoc(
+          doc(db, "customers", selectedProject.customerUid)
+        );
+        if (!customer.exists) setSelectedProjectsCustomer(null);
+        else
+          setSelectedProjectsCustomer({
+            docId: customer.id,
+            ...customer.data(),
+          });
+      } catch (error) {
+        console.error("could not get proselectedProjectject's customer", error);
+      }
+    })();
+  }, [selectedProject]);
+
+  // get team for selectedProject
+  React.useEffect(() => {
+    if (!selectedProject) return;
+
+    (async () => {
+      try {
+        const team = await getDoc(doc(db, "teams", selectedProject.teamUid));
+
+        const teamMemberUids = team?.data()?.members || [];
+
+        if (!teamMemberUids.length) return;
+
+        const allPromises = [];
+        teamMemberUids.forEach((id) =>
+          allPromises.push(getDoc(doc(db, "users", id)))
+        );
+
+        const teamMembers = await Promise.all(allPromises);
+        setSelectedProjectsTeam(
+          teamMembers.map((m) => ({ docId: m.id, ...m.data() }))
+        );
+      } catch (error) {
+        console.error("could not get selectedProject's team", error);
+      }
+    })();
+  }, [selectedProject]);
+
+  const onCloseDialog = React.useCallback(() => {
     setIsOpenDialog(false);
     clearFormErrors();
     resetForm();
-  };
+    setSelectedProject(null);
+  }, [clearFormErrors, resetForm]);
 
   const createNewPegRequest = React.useCallback(
-    async (data) => {
+    async ({ numberOfProjectDaysEvaluated, projectUid }) => {
       try {
-        console.log(data);
+        setLoadingNewPegRequest(true);
+
+        if (!currentUser || !selectedProjectsTeam?.length) return;
+
+        const creatorUid = currentUser.uid;
+        const dateOfPeg = Timestamp.now();
+
+        const manager = selectedProjectsTeam.find(
+          (m) => m.role === ROLES.MANAGER
+        );
+
+        if (!manager) {
+          console.log("No manager");
+          return;
+        }
+
+        const evaluatorUid = manager.uid;
+        const fiscalYear = currentUser.fiscalYear;
+
+        await addDoc(collection(db, "pegRequests"), {
+          creatorUid,
+          dateOfPeg,
+          evaluatorUid,
+          fiscalYear,
+          numberOfProjectDaysEvaluated,
+          projectUid,
+        });
+
+        await updateDoc(doc(db, "projects", projectUid), {
+          currentlyInPegRequest: true,
+        });
+
+        await getSelectableProjects();
+
+        toast({
+          position: "top",
+          title: "Successfully created new peg request! 😋",
+          status: "success",
+          duration: 9000,
+          isClosable: true,
+        });
+        onCloseDialog();
       } catch (error) {
         const errorMessage = error.code.split("/")[1].replaceAll("-", " ");
 
@@ -116,14 +223,12 @@ const CreatePegRequestButton = () => {
           duration: 9000,
           isClosable: true,
         });
+      } finally {
+        setLoadingNewPegRequest(false);
       }
     },
-    [toast]
+    [toast, currentUser, selectedProjectsTeam, onCloseDialog]
   );
-
-  React.useEffect(() => {
-    console.log(selectedProject);
-  }, [selectedProject]);
 
   return (
     <Flex mb={4}>
@@ -170,7 +275,7 @@ const CreatePegRequestButton = () => {
                             "Peg requests require a project to be associated with",
                         },
                       }}
-                      name="project"
+                      name="projectUid"
                       render={({ field, fieldState: { invalid, error } }) => {
                         return (
                           <FormControl isInvalid={invalid} isRequired>
@@ -185,7 +290,11 @@ const CreatePegRequestButton = () => {
                             <Select
                               placeholder="Select a project"
                               onChange={(e) => {
-                                setSelectedProject(e.target.value);
+                                setSelectedProject(
+                                  selectableProjects.find(
+                                    (p) => p.docId === e.target.value
+                                  )
+                                );
                                 field.onChange(e.target.value);
                               }}
                               value={field.value}
@@ -217,6 +326,271 @@ const CreatePegRequestButton = () => {
                         are not yet peg requested.
                       </Text>
                     </Alert>
+                  )}
+                  {!!selectedProject && (
+                    <VStack mt={2} spacing={2}>
+                      <Controller
+                        control={control}
+                        rules={{
+                          required: {
+                            value: true,
+                            message:
+                              "Number of project days evaluated is required",
+                          },
+                        }}
+                        name="numberOfProjectDaysEvaluated"
+                        render={({ field, fieldState: { invalid, error } }) => {
+                          return (
+                            <FormControl isInvalid={invalid} isRequired>
+                              <FormLabel
+                                htmlFor={field.name}
+                                fontSize="sm"
+                                fontWeight="md"
+                                color={colorModeForFromLabels}
+                              >
+                                Number of project days evaluated
+                              </FormLabel>
+                              <Select
+                                placeholder="Select a range of days"
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                }}
+                                value={field.value}
+                              >
+                                {React.Children.toArray(
+                                  PROJECT_DAYS_EVALUATED_VALUES.map(
+                                    (option) => (
+                                      <option value={option}>{option}</option>
+                                    )
+                                  )
+                                )}
+                              </Select>
+                              <FormErrorMessage>
+                                {error?.message}
+                              </FormErrorMessage>
+                            </FormControl>
+                          );
+                        }}
+                      ></Controller>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"fiscalYear"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Fiscal Year
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"fiscalYear"}
+                          value={currentUser.fiscalYear}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"employeeName"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Employee Name
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"employeeName"}
+                          value={currentUser.displayName}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"personnelNumber"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Personnel Number
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"personnelNumber"}
+                          value={currentUser.uid}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"currentCareerLevel"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Current Career Level
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"currentCareerLevel"}
+                          value={currentUser.careerLevel}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"SU"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Organizational assignment (SU)
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"SU"}
+                          value={currentUser.SU}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"dateOfPEG"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Date of PEG
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"dateOfPEG"}
+                          value={new Date().toISOString().split("T")[0]}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"projectID"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Project ID
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"projectID"}
+                          value={selectedProject.docId}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"customerName"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Customer Name
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"customerName"}
+                          value={selectedProjectsCustomer?.name || ""}
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"nameOfTheProjectManager"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Name of the Project Manager
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"nameOfTheProjectManager"}
+                          value={
+                            selectedProjectsTeam.find(
+                              (m) => m.role === ROLES.MANAGER
+                            )?.displayName
+                          }
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel
+                          htmlFor={"nameOfTheEvaluator"}
+                          fontSize="sm"
+                          fontWeight="md"
+                          color={colorModeForFromLabels}
+                        >
+                          Name of the Evaluator
+                        </FormLabel>
+                        <Input
+                          isDisabled
+                          type="text"
+                          name={"nameOfTheEvaluator"}
+                          value={
+                            selectedProjectsTeam.find(
+                              (m) => m.role === ROLES.MANAGER
+                            )?.displayName
+                          }
+                          focusBorderColor="brand.400"
+                          shadow="sm"
+                          size="sm"
+                          w="full"
+                          rounded="md"
+                        />
+                      </FormControl>
+                    </VStack>
                   )}
                 </AlertDialogBody>
 

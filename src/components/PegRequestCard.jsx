@@ -11,6 +11,7 @@ import {
   HStack,
   Text,
   VStack,
+  Center,
 } from "@chakra-ui/layout";
 import { chakra } from "@chakra-ui/system";
 import {
@@ -21,8 +22,11 @@ import {
   query,
   where,
 } from "@firebase/firestore";
-import { db } from "../firebase";
 import { Skeleton } from "@chakra-ui/skeleton";
+import { Icon, Tooltip } from "@chakra-ui/react";
+import { BsFillInfoCircleFill } from "react-icons/bs";
+
+import { db } from "../firebase";
 
 const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
   const [readMore, setReadMore] = React.useState(false);
@@ -204,7 +208,7 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
       };
 
       setProject(resultingProjectObject);
-      console.log(resultingProjectObject);
+      // console.log(resultingProjectObject);
     })();
   }, [pr]);
 
@@ -259,9 +263,16 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
           {/* BODY */}
           <VStack>
-            <Heading fontSize="4xl" color={titleColor} fontWeight="700">
-              {`${project.name}`}
-            </Heading>
+            <HStack spacing={2}>
+              <Heading fontSize="4xl" color={titleColor} fontWeight="700">
+                {`${project.name}`}
+              </Heading>
+              <Tooltip label={`Project ID: ${project.docId}`}>
+                <Center>
+                  <Icon as={BsFillInfoCircleFill} />
+                </Center>
+              </Tooltip>
+            </HStack>
 
             <Divider />
 
@@ -277,7 +288,10 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
 
             <chakra.p>Fiscal Year: {pr.fiscalYear}</chakra.p>
 
-            <chakra.p>Personnel Number: {project.team.members.length}</chakra.p>
+            <chakra.p>
+              {`${project.pegCreator.displayName}`} Personnel Number:{" "}
+              {project.pegCreator.uid}
+            </chakra.p>
 
             {readMore && (
               <>
@@ -298,9 +312,14 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
                               src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
                               alt="avatar"
                             />
-                            <Text color={creatorNameColor} fontWeight="700">
-                              {m.displayName}
-                            </Text>
+                            <VStack spacing={0}>
+                              <Text color={creatorNameColor} fontWeight="700">
+                                {m.displayName}
+                              </Text>
+                              <Text color={creatorNameColor} fontWeight="300">
+                                {m.role}
+                              </Text>
+                            </VStack>
                           </Flex>
                         ))
                       )}

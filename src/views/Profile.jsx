@@ -34,7 +34,6 @@ const Profile = () => {
   const {
     control,
     handleSubmit,
-    // formState: { errors },
     setValue: setValueProfileForm,
   } = useForm();
 
@@ -70,12 +69,12 @@ const Profile = () => {
   });
 
   const {
-    field: fieldStandUp,
-    fieldState: { error: fieldStandUpError, invalid: isInvalidFieldStandUp },
+    field: fieldSU,
+    fieldState: { error: fieldSUError, invalid: isInvalidFieldSU },
   } = useController({
     control: control,
     defaultValue: "",
-    name: "standUp",
+    name: "SU",
     rules: {
       required: { value: true, message: "SU Detail is required" },
     },
@@ -115,7 +114,7 @@ const Profile = () => {
     setValueProfileForm("displayName", user.displayName);
     setValueProfileForm("phoneNumber", user.phoneNumber);
     setValueProfileForm("careerLevel", user.careerLevel);
-    setValueProfileForm("standUp", user.standUp);
+    setValueProfileForm("SU", user.SU);
     setValueProfileForm("fiscalYear", user.fiscalYear);
   }, [user, setValueProfileForm]);
 
@@ -316,11 +315,11 @@ const Profile = () => {
           <FormControl
             as={GridItem}
             colSpan={[6, 3]}
-            isInvalid={isInvalidFieldStandUp}
+            isInvalid={isInvalidFieldSU}
             isRequired
           >
             <FormLabel
-              htmlFor={fieldStandUp.name}
+              htmlFor={fieldSU.name}
               fontSize="sm"
               fontWeight="md"
               color={useColorModeValue("gray.700", "gray.50")}
@@ -330,9 +329,9 @@ const Profile = () => {
             <Input
               isDisabled={user?.isProfileCompleted && !editMode}
               type="text"
-              name={fieldStandUp.name}
-              onChange={fieldStandUp.onChange}
-              value={fieldStandUp.value}
+              name={fieldSU.name}
+              onChange={fieldSU.onChange}
+              value={fieldSU.value}
               mt={1}
               focusBorderColor="brand.400"
               shadow="sm"
@@ -340,7 +339,7 @@ const Profile = () => {
               w="full"
               rounded="md"
             />
-            <FormErrorMessage>{fieldStandUpError?.message}</FormErrorMessage>
+            <FormErrorMessage>{fieldSUError?.message}</FormErrorMessage>
           </FormControl>
 
           <FormControl

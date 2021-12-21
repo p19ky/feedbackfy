@@ -4,17 +4,17 @@ import { useSelector } from "react-redux";
 import GlobalLoading from "./GlobalLoading";
 import { ROLES } from "../utils/constants";
 
-const RequireRoleManager = ({ children }) => {
+const RequireRoleNotAdmin = ({ children }) => {
   const isUserInitialized = useSelector((state) => state.user.initialized);
   const user = useSelector((state) => state.user.value);
 
   if (!isUserInitialized) return <GlobalLoading />;
 
-  if (user?.role !== ROLES.MANAGER) {
+  if (user?.role === ROLES.ADMIN) {
     return <Navigate replace to="/" />;
   }
 
   return children;
 };
 
-export default RequireRoleManager;
+export default RequireRoleNotAdmin;

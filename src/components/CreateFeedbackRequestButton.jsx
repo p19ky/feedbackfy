@@ -55,7 +55,10 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
     if (currentUser.role !== ROLES.USER) {
       setCurrentRequestedOn(null);
     }
-  }, [currentUser, resetForm, clearFormErrors]);
+    if (currentUser.role === ROLES.USER) {
+      setValueForm("requestedOn", currentUser.uid)
+    }
+  }, [currentUser, resetForm, clearFormErrors, setValueForm]);
 
   const setOfAllTeamMembers = () =>
     Array.from(
@@ -167,8 +170,8 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
                             Feedback request on
                           </FormLabel>
                           {currentUser.role === ROLES.USER ? (
-                            <Select isDisabled defaultValue={currentUser.uid}>
-                              <option value={currentUser.uid}>
+                            <Select isDisabled>
+                              <option value={currentUser.uid} selected>
                                 {currentUser.displayName}
                               </option>
                             </Select>
@@ -236,8 +239,8 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
                                   .map((user) => (
                                     <option value={user.uid}>
                                     {`${user.displayName}${
-                                        user.role === ROLES.MANAGER &&
-                                        " (Manager)"
+                                        user.role === ROLES.MANAGER ?
+                                        " (Manager)" : ""
                                       }`}
                                     </option>
                                   ))
