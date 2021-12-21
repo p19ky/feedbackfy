@@ -51,9 +51,11 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
     setIsOpenDialog(false);
     resetForm();
     clearFormErrors();
-    setCurrentRequestedOn(null);
     setCurrentAnsweredBy(null);
-  }, [resetForm, clearFormErrors]);
+    if (currentUser.role !== ROLES.USER) {
+      setCurrentRequestedOn(null);
+    }
+  }, [currentUser, resetForm, clearFormErrors]);
 
   const setOfAllTeamMembers = () =>
     Array.from(
@@ -183,7 +185,6 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
                                 setOfAllTeamMembers()
                                   .filter(
                                     (m) =>
-                                      m.uid !== currentUser.uid &&
                                       m.uid !== currentAnsweredBy
                                   )
                                   .map((user) => (
@@ -234,7 +235,10 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
                                   .filter((m) => m.uid !== currentRequestedOn)
                                   .map((user) => (
                                     <option value={user.uid}>
-                                      {user.displayName}
+                                    {`${user.displayName}${
+                                        user.role === ROLES.MANAGER &&
+                                        " (Manager)"
+                                      }`}
                                     </option>
                                   ))
                               )}

@@ -9,7 +9,7 @@ import {
   AlertDialogOverlay,
 } from "@chakra-ui/modal";
 import { Alert, AlertIcon } from "@chakra-ui/alert";
-import { Flex, Heading, Text } from "@chakra-ui/layout";
+import { Flex, Heading, Text, VStack } from "@chakra-ui/layout";
 import { Image } from "@chakra-ui/image";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 
@@ -84,12 +84,20 @@ const ShowMyTeamsFeedback = ({ myTeams }) => {
                                   src="https://external-preview.redd.it/fAFuBHWbVrt1_IQVRyLUVP1UCP2Yi2R-I2LzKC9ibo8.jpg?auto=webp&s=cd4e3eaf1926e236fb0082150d44b17b93a97b26"
                                   alt="avatar"
                                 />
-                                <Text
-                                  color={teamMemberNameColor}
-                                  fontWeight="700"
-                                >
-                                  {m.displayName}
-                                </Text>
+                                <VStack spacing={0}>
+                                  <Text
+                                    color={teamMemberNameColor}
+                                    fontWeight="700"
+                                  >
+                                    {m.displayName}
+                                  </Text>
+                                  <Text
+                                    color={teamMemberNameColor}
+                                    fontWeight="300"
+                                  >
+                                    {m.role}
+                                  </Text>
+                                </VStack>
                               </Flex>
                             ))
                           )}
