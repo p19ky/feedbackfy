@@ -23,7 +23,6 @@ import { RiChatPollFill, RiFeedbackFill } from "react-icons/ri";
 import { FiMenu } from "react-icons/fi";
 import { MdHome } from "react-icons/md";
 import { RiAdminLine, RiLogoutBoxLine } from "react-icons/ri";
-import { BsFillPersonLinesFill } from "react-icons/bs";
 
 import { logout } from "../state/user/userSlice";
 import { ROLES } from "../utils/constants";
@@ -103,7 +102,6 @@ const LayoutWithNavbar = ({ children: layoutChildren }) => {
 
 const SidebarContent = (props) => {
   const user = useSelector((state) => state.user.value);
-  // const integrations = useDisclosure();
 
   return (
     <Box
@@ -146,11 +144,6 @@ const SidebarContent = (props) => {
         {user?.role === ROLES.ADMIN && (
           <NavItem icon={RiAdminLine} to={"/admin"}>
             Admin
-          </NavItem>
-        )}
-        {user?.role === ROLES.MANAGER && (
-          <NavItem icon={BsFillPersonLinesFill} to={"/manager"}>
-            Manager
           </NavItem>
         )}
         {user?.role !== ROLES.ADMIN && <NavItem icon={RiChatPollFill} to={"/pegs"}>

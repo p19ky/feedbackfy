@@ -18,6 +18,7 @@ import {
   query,
   startAfter,
   updateDoc,
+  where,
 } from "@firebase/firestore";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import { Button } from "@chakra-ui/button";
@@ -60,6 +61,8 @@ const Admin = () => {
   const toast = useToast();
 
   React.useEffect(() => {
+    if (!currentUser) return;
+
     (async () => {
       try {
         console.log("get users");
@@ -69,6 +72,7 @@ const Admin = () => {
         const querySnapshot = await getDocs(
           query(
             collection(db, "users"),
+            where("email", "!=", currentUser.email),
             orderBy("email", "desc"),
             limit(LIMIT_NR_USERS_PER_REQUEST)
           )
@@ -98,10 +102,10 @@ const Admin = () => {
         setLoadingUsers(false);
       }
     })();
-  }, []);
+  }, [currentUser]);
 
   const getMoreUsers = async () => {
-    if (!hasMoreUsers) return;
+    if (!hasMoreUsers || !currentUser) return;
 
     console.log("get more users");
 
@@ -111,6 +115,7 @@ const Admin = () => {
       const querySnapshot = await getDocs(
         query(
           collection(db, "users"),
+          where("email", "!=", currentUser.email),
           orderBy("email", "desc"),
           startAfter(currentLastUser.current),
           limit(LIMIT_NR_USERS_PER_REQUEST)
@@ -221,25 +226,23 @@ const Admin = () => {
             </>
           )}
           {React.Children.toArray(
-            users.map((user) =>
-              user.uid !== currentUser.uid ? (
-                <CustomBodyTr>
-                  <Td>
-                    <Center>{user.email}</Center>
-                  </Td>
-                  <Td>
-                    <Center>{user.role}</Center>
-                  </Td>
-                  <Td>
-                    <Center>
-                      <Button onClick={() => onOpenEditRole(user)}>
-                        Edit Role
-                      </Button>
-                    </Center>
-                  </Td>
-                </CustomBodyTr>
-              ) : null
-            )
+            users.map((user) => (
+              <CustomBodyTr>
+                <Td>
+                  <Center>{user.email}</Center>
+                </Td>
+                <Td>
+                  <Center>{user.role}</Center>
+                </Td>
+                <Td>
+                  <Center>
+                    <Button onClick={() => onOpenEditRole(user)}>
+                      Edit Role
+                    </Button>
+                  </Center>
+                </Td>
+              </CustomBodyTr>
+            ))
           )}
           <AlertDialog
             isOpen={isOpenEditRole}

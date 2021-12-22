@@ -32,6 +32,7 @@ import {
 } from "@chakra-ui/form-control";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { useToast } from "@chakra-ui/toast";
+import emailjs from 'emailjs-com';
 
 import { db } from "../firebase";
 import { PROJECT_DAYS_EVALUATED_VALUES, ROLES } from "../utils/constants";
@@ -205,6 +206,23 @@ const CreatePegRequestButton = () => {
 
         await getSelectableProjects();
 
+        await emailjs.send(
+          process.env.REACT_APP_EMAILJS_SERVICE_ID_PEG_REQUEST,
+          process.env.REACT_APP_EMAILJS_TEMPLATE_ID_PEG_REQUEST,
+          {
+            projectName: selectedProject.name,
+            employeeName: currentUser.displayName,
+            customerName: selectedProjectsCustomer?.name,
+            evaluatorName: selectedProjectsTeam.find(
+              (m) => m.role === ROLES.MANAGER
+            )?.displayName,
+            emailTo: selectedProjectsTeam.find(
+              (m) => m.role === ROLES.MANAGER
+            )?.email,
+          },
+          process.env.REACT_APP_EMAILJS_USER_ID_PEG_REQUEST
+        );
+
         toast({
           position: "top",
           title: "Successfully created new peg request! 😋",
@@ -214,11 +232,12 @@ const CreatePegRequestButton = () => {
         });
         onCloseDialog();
       } catch (error) {
-        const errorMessage = error.code.split("/")[1].replaceAll("-", " ");
+        console.log(error)
+        const errorMessage = error.code?.split("/")[1].replaceAll("-", " ");
 
         toast({
           position: "top",
-          title: errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1),
+          title: errorMessage?.charAt(0).toUpperCase() + errorMessage?.slice(1),
           status: "error",
           duration: 9000,
           isClosable: true,
@@ -227,7 +246,7 @@ const CreatePegRequestButton = () => {
         setLoadingNewPegRequest(false);
       }
     },
-    [toast, currentUser, selectedProjectsTeam, onCloseDialog]
+    [toast, currentUser, selectedProjectsTeam, onCloseDialog, selectedProject, selectedProjectsCustomer]
   );
 
   return (

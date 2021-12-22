@@ -1,31 +1,66 @@
 import React from "react";
-import { collection, getDocs } from "@firebase/firestore";
+import { useSelector } from "react-redux";
+import { collection, onSnapshot, query, where } from "@firebase/firestore";
 
 import { db } from "../firebase";
 import PegEvaluationCard from "./PegEvaluationCard";
+import { ROLES } from "../utils/constants";
 
 const PegEvaluations = () => {
   const [pegEvaluations, setPegEvaluations] = React.useState([]);
+  const currentUser = useSelector((state) => state.user.value);
+
+  const queriesMap = React.useMemo(
+    () => ({
+      [ROLES.USER]: query(
+        collection(db, "pegEvaluations"),
+        where("requestedBy", "==", currentUser.uid)
+      ),
+      [ROLES.MANAGER]: query(
+        collection(db, "pegEvaluations"),
+        where("evaluatedBy", "==", currentUser.uid)
+      ),
+    }),
+    [currentUser]
+  );
 
   // Fetch Peg Evaluations
   React.useEffect(() => {
+    if (!currentUser || !queriesMap) return;
+
+    let unsubscribePegEvaluations = () => {};
+
     (async () => {
       try {
-        const response = await getDocs(collection(db, "pegEvaluations"));
-        setPegEvaluations(
-          response.docs.map((doc) => ({ docId: doc.id, ...doc.data() }))
+        // only listen to peg evaluations that have been requested/evaluated by the current user.
+        unsubscribePegEvaluations = onSnapshot(
+          queriesMap[currentUser.role],
+          (querySnapshot) => {
+            setPegEvaluations(
+              querySnapshot.docs.map((doc) => ({
+                docId: doc.id,
+                ...doc.data(),
+              }))
+            );
+          }
         );
       } catch (error) {
         console.error(error);
       }
     })();
-  }, []);
+
+    return unsubscribePegEvaluations;
+  }, [currentUser, queriesMap]);
 
   return (
     <>
-      {React.Children.toArray(
-        pegEvaluations.map((pe) => <PegEvaluationCard pegEvaluation={pe} />)
-      )}
+      {pegEvaluations.map((pe, i) => (
+        <PegEvaluationCard
+          key={i}
+          pegEvaluation={pe}
+          isLast={i === pegEvaluations.length - 1}
+        />
+      ))}
     </>
   );
 };
