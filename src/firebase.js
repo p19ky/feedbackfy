@@ -3,12 +3,12 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAuKLp0_rv_pKnDTDKUAy1QBi_CWfM1-10",
-  authDomain: "feedbackfy.firebaseapp.com",
-  projectId: "feedbackfy",
-  storageBucket: "feedbackfy.appspot.com",
-  messagingSenderId: "1029840063473",
-  appId: "1:1029840063473:web:c2d012aa986cc864919250",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
