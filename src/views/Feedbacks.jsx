@@ -16,6 +16,7 @@ import CreateFeedbackRequestButton from "../components/CreateFeedbackRequestButt
 import FeedbacksSent from "../components/FeedbacksSent";
 import FeedbacksReceived from "../components/FeedbacksReceived";
 import ShowMyTeamsFeedback from "../components/ShowMyTeamsFeedback";
+import FeedbackRequests from "../components/FeedbackRequests";
 
 const Feedbacks = () => {
   const currentUser = useSelector((state) => state.user.value);
@@ -68,7 +69,7 @@ const Feedbacks = () => {
           membersArray.push(response.data());
         }
 
-        tempMyTeamsWithDetails.push({ name: team.name, members: membersArray });
+        tempMyTeamsWithDetails.push({ docId: team.docId, name: team.name, members: membersArray });
       }
 
       setMyTeamsWithDetails(tempMyTeamsWithDetails);
@@ -84,11 +85,15 @@ const Feedbacks = () => {
 
       <Tabs variant="soft-rounded" colorScheme="blue" align="center">
         <TabList>
+          <Tab>Feedback requests</Tab>
           <Tab>Feedbacks sent</Tab>
           <Tab>Feedbacks received</Tab>
         </TabList>
 
         <TabPanels>
+          <TabPanel>
+            <FeedbackRequests />
+          </TabPanel>
           <TabPanel>
             <FeedbacksSent />
           </TabPanel>

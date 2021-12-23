@@ -1,7 +1,7 @@
 import React from "react";
 
 const FeedbacksReceived = () => {
-  return <div></div>;
+  return <div>FeedbacksReceived</div>;
 };
 
 export default FeedbacksReceived;

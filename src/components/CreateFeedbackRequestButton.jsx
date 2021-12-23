@@ -23,15 +23,17 @@ import { Select } from "@chakra-ui/select";
 import { useToast } from "@chakra-ui/toast";
 
 import { ROLES } from "../utils/constants";
-import { addDoc, collection } from "@firebase/firestore";
+import { addDoc, collection, query, where, getDocs } from "@firebase/firestore";
 import { db } from "../firebase";
 
-const CreateFeedbackRequestButton = ({ myTeams }) => {
+const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
   const [isOpenDialog, setIsOpenDialog] = React.useState(false);
   const [loadingNewFeedbackRequest, setLoadingNewFeedbackRequest] =
     React.useState(false);
   const [currentRequestedOn, setCurrentRequestedOn] = React.useState(null);
   const [currentAnsweredBy, setCurrentAnsweredBy] = React.useState(null);
+  const [selectableProjects, setSelectableProjects] = React.useState([]);
+  const [projectsWhereBothUsersAreMembers, setProjectsWhereBothUsersAreMembers] = React.useState([]);
 
   const cancelDialogRef = React.useRef();
 
@@ -56,19 +58,81 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
       setCurrentRequestedOn(null);
     }
     if (currentUser.role === ROLES.USER) {
-      setValueForm("requestedOn", currentUser.uid)
+      setValueForm("requestedOn", currentUser.uid);
     }
   }, [currentUser, resetForm, clearFormErrors, setValueForm]);
 
-  const setOfAllTeamMembers = () =>
-    Array.from(
-      new Set(
-        myTeams.reduce((acc, team) => {
-          acc = [...team.members, ...acc];
-          return acc;
-        }, [])
-      )
-    );
+  const setOfAllTeamMembers = React.useMemo(
+    () =>
+      Array.from(
+        new Set(
+          myTeams.reduce((acc, team) => {
+            acc = [...team.members, ...acc];
+            return acc;
+          }, [])
+        )
+      ),
+    [myTeams]
+  );
+
+  // get all projects which have as a team one of 'myTeams'
+  // result will be a array with objects of the form { docId: project's id, ...project's data, team: myTeams Object }
+  React.useEffect(() => {
+    if (!myTeams?.length) return;
+
+    (async () => {
+      const allTeamsUids = myTeams.map((team) => team.docId);
+
+      const resultDocs = [];
+      for (let index = 0; index < allTeamsUids.length; index++) {
+        const teamUid = allTeamsUids[index];
+        const result = await getDocs(
+          query(collection(db, "projects"), where("teamUid", "==", teamUid))
+        );
+        resultDocs.push(...result.docs);
+      }
+
+      const allProjectsFromResults = Array.from(
+        new Set(
+          resultDocs.reduce((acc, doc) => {
+            acc = [
+              {
+                docId: doc.id,
+                ...doc.data(),
+                team: myTeams.find((t) => t.docId === doc.data().teamUid),
+              },
+              ...acc,
+            ];
+            return acc;
+          }, [])
+        )
+      );
+
+      setSelectableProjects(allProjectsFromResults);
+    })();
+  }, [myTeams]);
+
+  // if both users have been selected, get the teams that can be selected by user.
+  React.useEffect(() => {
+    if (!selectableProjects.length || !currentRequestedOn || !currentAnsweredBy) return;
+
+    const temp = selectableProjects.filter(
+      (p) =>
+        p.team.members.some((m) => m.uid === currentRequestedOn) &&
+        p.team.members.some((m) => m.uid === currentAnsweredBy)
+    )
+
+    setProjectsWhereBothUsersAreMembers(temp)
+  }, [selectableProjects, currentRequestedOn, currentAnsweredBy ])
+
+  // if there is only one team in the selectable projects for the user, choose the first one as the default.
+  React.useEffect(() => {
+    if (!projectsWhereBothUsersAreMembers.length) return;
+
+    if (projectsWhereBothUsersAreMembers.length === 1) {
+      setValueForm("projectUid", projectsWhereBothUsersAreMembers[0].docId)
+    }
+  }, [projectsWhereBothUsersAreMembers, setValueForm])
 
   // set currentRequestedOn to current user if role is of type USER
   React.useEffect(() => {
@@ -87,7 +151,10 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
 
         console.log(data);
 
-        await addDoc(collection(db, "feedbacks"), data);
+        await addDoc(collection(db, "feedbackRequests"), {
+          completed: false,
+          ...data,
+        });
         onCloseDialog();
 
         toast({
@@ -185,11 +252,8 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
                               value={field.value}
                             >
                               {React.Children.toArray(
-                                setOfAllTeamMembers()
-                                  .filter(
-                                    (m) =>
-                                      m.uid !== currentAnsweredBy
-                                  )
+                                setOfAllTeamMembers
+                                  .filter((m) => m.uid !== currentAnsweredBy)
                                   .map((user) => (
                                     <option value={user.uid}>
                                       {user.displayName}
@@ -234,16 +298,58 @@ const CreateFeedbackRequestButton = ({ myTeams }) => {
                               value={field.value}
                             >
                               {React.Children.toArray(
-                                setOfAllTeamMembers()
+                                setOfAllTeamMembers
                                   .filter((m) => m.uid !== currentRequestedOn)
                                   .map((user) => (
                                     <option value={user.uid}>
-                                    {`${user.displayName}${
-                                        user.role === ROLES.MANAGER ?
-                                        " (Manager)" : ""
+                                      {`${user.displayName}${
+                                        user.role === ROLES.MANAGER
+                                          ? " (Manager)"
+                                          : ""
                                       }`}
                                     </option>
                                   ))
+                              )}
+                            </Select>
+                            <FormErrorMessage>
+                              {error?.message}
+                            </FormErrorMessage>
+                          </FormControl>
+                        );
+                      }}
+                    />
+                  )}
+                  {currentRequestedOn && currentAnsweredBy && (
+                    <Controller
+                      control={control}
+                      name="projectUid"
+                      render={({ field, fieldState: { invalid, error } }) => {
+                        return (
+                          <FormControl isInvalid={invalid}>
+                            <FormLabel
+                              htmlFor={field.name}
+                              fontSize="sm"
+                              fontWeight="md"
+                              color={colorModeForFromLabels}
+                            >
+                              Project (optional)
+                            </FormLabel>
+                            <Select
+                              placeholder="Select a project"
+                              onChange={field.onChange}
+                              value={field.value}
+                              defaultValue={field.value}
+                            >
+                              {React.Children.toArray(
+                                projectsWhereBothUsersAreMembers.map(
+                                  (p) => (
+                                    <option
+                                      value={p.docId}
+                                    >
+                                      {p.name}
+                                    </option>
+                                  )
+                                )
                               )}
                             </Select>
                             <FormErrorMessage>
