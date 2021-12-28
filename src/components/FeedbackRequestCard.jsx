@@ -124,7 +124,9 @@ const FeedbackRequestCard = ({
             </Badge>
           </Flex>
           <Text>{`There is a feedback request on ${
-            requestedOn.displayName
+            currentUser.uid === requestedOn.uid
+              ? "you"
+              : requestedOn.displayName
           } that needs to be answered by ${
             answeredBy.uid === currentUser.uid ? "you" : answeredBy.displayName
           }.`}</Text>

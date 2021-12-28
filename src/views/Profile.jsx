@@ -25,17 +25,14 @@ import { useToast } from "@chakra-ui/toast";
 
 import { CAREER_LEVELS, PHONE_NR_REGEX } from "../utils/constants";
 import { db } from "../firebase";
+import { generateKeywordsArrayForText } from "../utils/helpers";
 
 const Profile = () => {
   const [editMode, setEditMode] = React.useState(false);
   const [currentYear] = React.useState(new Date().getFullYear());
   const user = useSelector((state) => state.user.value);
 
-  const {
-    control,
-    handleSubmit,
-    setValue: setValueProfileForm,
-  } = useForm();
+  const { control, handleSubmit, setValue: setValueProfileForm } = useForm();
 
   const {
     field: fieldName,
@@ -130,9 +127,15 @@ const Profile = () => {
 
   const submitProfileForm = React.useCallback(
     async (data) => {
+      const currentDisplayName = data.displayName;
+
+      const keywordsArrayOfDisplayName =
+        generateKeywordsArrayForText(currentDisplayName);
+
       try {
         await updateDoc(doc(db, "users", user.uid), {
           isProfileCompleted: true,
+          keywordsArrayOfDisplayName,
           ...data,
         });
 

@@ -207,7 +207,7 @@ const CreatePegRequestButton = () => {
         await getSelectableProjects();
 
         await emailjs.send(
-          process.env.REACT_APP_EMAILJS_SERVICE_ID_PEG_REQUEST,
+          process.env.REACT_APP_EMAILJS_SERVICE_ID,
           process.env.REACT_APP_EMAILJS_TEMPLATE_ID_PEG_REQUEST,
           {
             projectName: selectedProject.name,
@@ -219,7 +219,7 @@ const CreatePegRequestButton = () => {
             emailTo: selectedProjectsTeam.find((m) => m.role === ROLES.MANAGER)
               ?.email,
           },
-          process.env.REACT_APP_EMAILJS_USER_ID_PEG_REQUEST
+          process.env.REACT_APP_EMAILJS_USER_ID
         );
 
         toast({

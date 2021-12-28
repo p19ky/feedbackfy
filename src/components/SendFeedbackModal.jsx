@@ -35,6 +35,7 @@ import {
   Timestamp,
   updateDoc,
 } from "firebase/firestore";
+import emailjs from "emailjs-com";
 
 import { db } from "../firebase";
 
@@ -147,6 +148,7 @@ const SendFeedbackModal = ({
       try {
         setLoadingSendFeedback(true);
 
+        // update 'completed'
         if (!isInNewFeedbackContext) {
           await updateDoc(
             doc(db, "feedbackRequests", currentFeedbackRequest.docId),
@@ -161,7 +163,7 @@ const SendFeedbackModal = ({
         if (!isInNewFeedbackContext) {
           result = {
             createdAt: Timestamp.now(),
-            projectUid: project.docId,
+            projectUid: project.docId || "",
             answeredBy: currentAnsweredBy.docId,
             requestedOn: currentRequestedOn.docId,
             ratings: [
@@ -178,7 +180,7 @@ const SendFeedbackModal = ({
           result = {
             createdAt: Timestamp.now(),
             anonym,
-            projectUid,
+            projectUid: projectUid || "",
             answeredBy: currentUser.uid,
             requestedOn: currentRequestedOn?.docId || null,
             ratings: [
@@ -189,12 +191,13 @@ const SendFeedbackModal = ({
               })),
             ],
           };
-
-          console.log(result);
         }
+
+        // console.log(result);
 
         await addDoc(collection(db, "feedbacks"), result);
 
+        // update existing feedbacks list with current status
         if (!isInNewFeedbackContext) {
           const tempAllFeedbackRequests = [...allFeedbackRequests];
           const currentAnsweredFRIndex = tempAllFeedbackRequests.findIndex(
@@ -203,6 +206,29 @@ const SendFeedbackModal = ({
           tempAllFeedbackRequests[currentAnsweredFRIndex].completed = true;
           setAllFeedbackRequests(tempAllFeedbackRequests);
         }
+
+        // send email
+        const emailData = {
+          toName: currentRequestedOn.displayName,
+          typeOfFeedback: isInNewFeedbackContext
+            ? "Feedback"
+            : "Feedback Request",
+          emailTo: currentRequestedOn.email,
+          fromName: anonym
+            ? "Anonymous Feedbacker"
+            : isInNewFeedbackContext
+            ? currentUser.displayName
+            : currentAnsweredBy.displayName,
+        };
+
+        // console.log(emailData);
+
+        await emailjs.send(
+          process.env.REACT_APP_EMAILJS_SERVICE_ID,
+          process.env.REACT_APP_EMAILJS_TEMPLATE_ID_FEEDBACK,
+          emailData,
+          process.env.REACT_APP_EMAILJS_USER_ID
+        );
 
         toast({
           position: "top",
@@ -289,7 +315,14 @@ const SendFeedbackModal = ({
                           placeholder="Select a user to send feedback to"
                           onChange={(e) => {
                             field.onChange(e.target.value);
-                            setCurrentRequestedOn({ docId: e.target.value });
+                            const thisUser = usersThatICanSendFeedbackTo.find(
+                              (u) => u.uid === e.target.value
+                            );
+                            setCurrentRequestedOn({
+                              docId: e.target.value,
+                              displayName: thisUser.displayName,
+                              email: thisUser.email,
+                            });
                           }}
                           value={field.value}
                         >

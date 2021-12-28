@@ -1,6 +1,13 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import {
   FormControl,
   FormLabel,
@@ -8,11 +15,12 @@ import {
   useColorModeValue,
   Grid,
   GridItem,
+  Input,
 } from "@chakra-ui/react";
 
 import { db } from "../firebase";
 import FeedbackRequestCard from "./FeedbackRequestCard";
-import { ROLES } from "../utils/constants";
+import { generateKeywordsArrayForText } from "../utils/helpers";
 
 const FEEDBACK_REQUESTS_FILTERS = ["All", "Not Answered Yet", "Answered"];
 
@@ -27,27 +35,9 @@ const FeedbackRequests = () => {
   const currentUser = useSelector((state) => state.user.value);
   const colorModeForFromLabels = useColorModeValue("gray.700", "gray.50");
 
-  // get all the feedback requests that need to be answered by current user. (USER)
+  // get all the feedback requests that were created by or need answer by current user.
   React.useEffect(() => {
-    if (!currentUser || currentUser.role !== ROLES.USER) return;
-
-    (async () => {
-      const feedbackRequestsResponse = await getDocs(
-        query(
-          collection(db, "feedbackRequests"),
-          where("answeredBy", "==", currentUser.uid)
-        )
-      );
-
-      setMyFeedbackRequests(
-        feedbackRequestsResponse.docs.map((d) => ({ docId: d.id, ...d.data() }))
-      );
-    })();
-  }, [currentUser]);
-
-  // get all the feedback requests that were created by current user. (MANAGER)
-  React.useEffect(() => {
-    if (!currentUser || currentUser.role !== ROLES.MANAGER) return;
+    if (!currentUser) return;
 
     (async () => {
       const feedbackRequestsCreatedByResponse = await getDocs(
@@ -75,7 +65,7 @@ const FeedbackRequests = () => {
           ...d.data(),
         }));
 
-      const tempMyFeedbackRequuests = [
+      const tempMyFeedbackRequests = [
         ...feedbackRequestsCreatedBy,
         ...feedbackRequestsAnsweredBy,
       ].reduce(
@@ -85,7 +75,24 @@ const FeedbackRequests = () => {
         []
       );
 
-      setMyFeedbackRequests(tempMyFeedbackRequuests);
+      for (let index = 0; index < tempMyFeedbackRequests.length; index++) {
+        const element = tempMyFeedbackRequests[index];
+
+        const answeredByFullResponse = await getDoc(
+          doc(db, "users", element.answeredBy)
+        );
+        const requestedOnFullResponse = await getDoc(
+          doc(db, "users", element.requestedOn)
+        );
+
+        tempMyFeedbackRequests[index] = {
+          ...tempMyFeedbackRequests[index],
+          answeredByFull: answeredByFullResponse.data(),
+          requestedOnFull: requestedOnFullResponse.data(),
+        };
+      }
+
+      setMyFeedbackRequests(tempMyFeedbackRequests);
     })();
   }, [currentUser]);
 
@@ -104,9 +111,45 @@ const FeedbackRequests = () => {
     );
   }, [myFeedbackRequests, currentFilter]);
 
+  const handleFilterByUser = (event) => {
+    const filtered = myFeedbackRequests.filter(
+      (fr) =>
+        Boolean(
+          generateKeywordsArrayForText(
+            fr.answeredByFull.displayName?.toLowerCase(),
+            false
+          )?.includes(event.target.value.trim().toLowerCase())
+        ) ||
+        Boolean(
+          generateKeywordsArrayForText(
+            fr.requestedOnFull.displayName?.toLowerCase(),
+            false
+          )?.includes(event.target.value.trim().toLowerCase())
+        )
+    );
+
+    setMyFilteredFeedbackRequests(filtered);
+  };
+
   return (
     <>
-      <Grid templateColumns="repeat(6, 1fr)" mb={4}>
+      <Grid templateColumns="repeat(6, 1fr)" mb={4} alignItems={"center"}>
+        <FormControl as={GridItem} colStart={1} colSpan={2}>
+          <FormLabel
+            htmlFor={"user filter"}
+            fontSize="sm"
+            fontWeight="md"
+            color={colorModeForFromLabels}
+          >
+            Filter by user
+          </FormLabel>
+          <Input
+            variant="filled"
+            placeholder="Type user name..."
+            onChange={handleFilterByUser}
+          />
+        </FormControl>
+
         <FormControl
           alignSelf={"flex-end"}
           as={GridItem}
@@ -114,7 +157,7 @@ const FeedbackRequests = () => {
           colSpan={2}
         >
           <FormLabel
-            htmlFor={"filter"}
+            htmlFor={"status filter"}
             fontSize="sm"
             fontWeight="md"
             color={colorModeForFromLabels}

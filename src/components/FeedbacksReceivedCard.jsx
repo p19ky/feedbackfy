@@ -28,11 +28,13 @@ const MAP_CATEGORIES_TO_FEEDBACK_TITLE = Object.freeze({
 
 const FeedbacksReceivedCard = ({ feedback, isLast = false }) => {
   const [currentAnsweredBy, setCurrentAnsweredBy] = React.useState(null);
+  const [currentProject, setCurrentProject] = React.useState(null);
 
   const containerFlexBg = useColorModeValue("#F9FAFB", "gray.600");
   const containerBoxBg = useColorModeValue("white", "gray.800");
   const subtleText = useColorModeValue("gray.600", "gray.400");
 
+  // get current answeredBy
   React.useEffect(() => {
     if (!feedback) return;
 
@@ -48,6 +50,33 @@ const FeedbacksReceivedCard = ({ feedback, isLast = false }) => {
         setCurrentAnsweredBy({
           docId: answeredByResponse.id,
           ...answeredByResponse.data(),
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, [feedback]);
+
+  // get current project
+  React.useEffect(() => {
+    if (!feedback) return;
+
+    (async () => {
+      try {
+        const { projectUid } = feedback;
+
+        if (!projectUid) return;
+
+        const projectResponse = await getDoc(doc(db, "projects", projectUid));
+
+        if (!projectResponse.exists)
+          throw new Error(
+            "project based on given uid for current feedback does not exist"
+          );
+
+        setCurrentProject({
+          docId: projectResponse.id,
+          ...projectResponse.data(),
         });
       } catch (error) {
         console.log(error);
@@ -92,6 +121,11 @@ const FeedbacksReceivedCard = ({ feedback, isLast = false }) => {
                 new Date(feedback.createdAt.seconds * 1000).getMonth() + 1
               }.${new Date(feedback.createdAt.seconds * 1000).getFullYear()}`}
             </chakra.span>
+            {!!currentProject && (
+              <chakra.span fontSize="sm" color={subtleText}>
+                {`${currentProject.name}`}
+              </chakra.span>
+            )}
             <chakra.span fontSize="sm" color={subtleText}>
               {`Feedback by ${currentAnsweredBy.displayName}`}
             </chakra.span>

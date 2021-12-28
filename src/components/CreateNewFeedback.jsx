@@ -1,8 +1,8 @@
 import React from "react";
 import { Button, useDisclosure } from "@chakra-ui/react";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import SendFeedbackModal from "./SendFeedbackModal";
 
+import SendFeedbackModal from "./SendFeedbackModal";
 import { db } from "../firebase";
 
 const CreateNewFeedback = ({ myTeams, setOfAllTeamMembers }) => {

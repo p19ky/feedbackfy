@@ -165,6 +165,7 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
         await addDoc(collection(db, "feedbackRequests"), {
           createdAt: Timestamp.now(),
           completed: false,
+          createdBy: currentUser.uid,
           ...data,
         });
         onCloseDialog();
@@ -190,7 +191,7 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
         setLoadingNewFeedbackRequest(false);
       }
     },
-    [toast, onCloseDialog]
+    [toast, onCloseDialog, currentUser]
   );
 
   return (
