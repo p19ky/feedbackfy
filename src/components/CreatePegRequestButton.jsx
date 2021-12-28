@@ -9,7 +9,7 @@ import {
   doc,
   Timestamp,
   addDoc,
-  updateDoc
+  updateDoc,
 } from "@firebase/firestore";
 import { Button } from "@chakra-ui/button";
 import { Flex, Text, VStack } from "@chakra-ui/layout";
@@ -32,7 +32,7 @@ import {
 } from "@chakra-ui/form-control";
 import { useColorModeValue } from "@chakra-ui/color-mode";
 import { useToast } from "@chakra-ui/toast";
-import emailjs from 'emailjs-com';
+import emailjs from "emailjs-com";
 
 import { db } from "../firebase";
 import { PROJECT_DAYS_EVALUATED_VALUES, ROLES } from "../utils/constants";
@@ -216,9 +216,8 @@ const CreatePegRequestButton = () => {
             evaluatorName: selectedProjectsTeam.find(
               (m) => m.role === ROLES.MANAGER
             )?.displayName,
-            emailTo: selectedProjectsTeam.find(
-              (m) => m.role === ROLES.MANAGER
-            )?.email,
+            emailTo: selectedProjectsTeam.find((m) => m.role === ROLES.MANAGER)
+              ?.email,
           },
           process.env.REACT_APP_EMAILJS_USER_ID_PEG_REQUEST
         );
@@ -232,7 +231,7 @@ const CreatePegRequestButton = () => {
         });
         onCloseDialog();
       } catch (error) {
-        console.log(error)
+        console.log(error);
         const errorMessage = error.code?.split("/")[1].replaceAll("-", " ");
 
         toast({
@@ -246,7 +245,14 @@ const CreatePegRequestButton = () => {
         setLoadingNewPegRequest(false);
       }
     },
-    [toast, currentUser, selectedProjectsTeam, onCloseDialog, selectedProject, selectedProjectsCustomer]
+    [
+      toast,
+      currentUser,
+      selectedProjectsTeam,
+      onCloseDialog,
+      selectedProject,
+      selectedProjectsCustomer,
+    ]
   );
 
   return (
@@ -390,7 +396,7 @@ const CreatePegRequestButton = () => {
                             </FormControl>
                           );
                         }}
-                      ></Controller>
+                      />
                       <FormControl>
                         <FormLabel
                           htmlFor={"fiscalYear"}

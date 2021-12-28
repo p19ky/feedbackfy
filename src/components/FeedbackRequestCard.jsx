@@ -1,17 +1,35 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { Flex, VStack } from "@chakra-ui/layout";
-import { useColorModeValue, Text, Skeleton, Badge } from "@chakra-ui/react";
+import { Flex, VStack, HStack } from "@chakra-ui/layout";
+import {
+  useColorModeValue,
+  Text,
+  Skeleton,
+  Badge,
+  Button,
+  useDisclosure,
+} from "@chakra-ui/react";
 import { doc, getDoc } from "firebase/firestore";
 
 import { db } from "../firebase";
+import SendFeedbackModal from "./SendFeedbackModal";
 
-const FeedbackRequestCard = ({ feedbackRequest: fr, isLast = false }) => {
+const FeedbackRequestCard = ({
+  feedbackRequest: fr,
+  isLast = false,
+  allFeedbackRequests = [],
+  setAllFeedbackRequests = () => {},
+}) => {
   const [requestedOn, setRequestedOn] = React.useState(null);
   const [answeredBy, setAnsweredBy] = React.useState(null);
   const [currentFRProject, setCurrentFRProject] = React.useState(null);
 
-  const currentUser = useSelector(state => state.user.value)
+  const currentUser = useSelector((state) => state.user.value);
+  const {
+    isOpen: isOpenSendFeedbackModal,
+    onOpen: onOpenSendFeedbackModal,
+    onClose: onCloseSendFeedbackModal,
+  } = useDisclosure();
 
   const containerFlexBg = useColorModeValue("#F9FAFB", "gray.600");
   const containerBoxBg = useColorModeValue("white", "gray.800");
@@ -99,13 +117,32 @@ const FeedbackRequestCard = ({ feedbackRequest: fr, isLast = false }) => {
           bg={containerBoxBg}
           w="50%"
         >
-          <Flex justifyContent="space-between">
+          <Flex justifyContent="space-between" alignItems="center">
             <Text>{currentFRProject?.name}</Text>
             <Badge colorScheme={fr.completed ? "green" : "red"}>
-                {fr.completed ? "Answered" : "Not Answered Yet"}
-              </Badge>
+              {fr.completed ? "Answered" : "Not Answered Yet"}
+            </Badge>
           </Flex>
-          <Text>{`There is a feedback request on ${requestedOn.displayName} that needs to be answered by ${answeredBy.uid === currentUser.uid ? "you" : answeredBy.displayName}.`}</Text>
+          <Text>{`There is a feedback request on ${
+            requestedOn.displayName
+          } that needs to be answered by ${
+            answeredBy.uid === currentUser.uid ? "you" : answeredBy.displayName
+          }.`}</Text>
+          {answeredBy.uid === currentUser.uid && !fr.completed && (
+            <HStack justify={"center"}>
+              <Button onClick={onOpenSendFeedbackModal}>Answer</Button>
+              <SendFeedbackModal
+                project={currentFRProject}
+                requestedOn={requestedOn}
+                answeredBy={answeredBy}
+                currentFeedbackRequest={fr}
+                isOpen={isOpenSendFeedbackModal}
+                onClose={onCloseSendFeedbackModal}
+                allFeedbackRequests={allFeedbackRequests}
+                setAllFeedbackRequests={setAllFeedbackRequests}
+              />
+            </HStack>
+          )}
         </VStack>
       )}
     </Flex>

@@ -23,7 +23,14 @@ import { Select } from "@chakra-ui/select";
 import { useToast } from "@chakra-ui/toast";
 
 import { ROLES } from "../utils/constants";
-import { addDoc, collection, query, where, getDocs } from "@firebase/firestore";
+import {
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  Timestamp,
+} from "@firebase/firestore";
 import { db } from "../firebase";
 
 const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
@@ -33,7 +40,10 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
   const [currentRequestedOn, setCurrentRequestedOn] = React.useState(null);
   const [currentAnsweredBy, setCurrentAnsweredBy] = React.useState(null);
   const [selectableProjects, setSelectableProjects] = React.useState([]);
-  const [projectsWhereBothUsersAreMembers, setProjectsWhereBothUsersAreMembers] = React.useState([]);
+  const [
+    projectsWhereBothUsersAreMembers,
+    setProjectsWhereBothUsersAreMembers,
+  ] = React.useState([]);
 
   const cancelDialogRef = React.useRef();
 
@@ -114,25 +124,26 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
 
   // if both users have been selected, get the teams that can be selected by user.
   React.useEffect(() => {
-    if (!selectableProjects.length || !currentRequestedOn || !currentAnsweredBy) return;
+    if (!selectableProjects.length || !currentRequestedOn || !currentAnsweredBy)
+      return;
 
     const temp = selectableProjects.filter(
       (p) =>
         p.team.members.some((m) => m.uid === currentRequestedOn) &&
         p.team.members.some((m) => m.uid === currentAnsweredBy)
-    )
+    );
 
-    setProjectsWhereBothUsersAreMembers(temp)
-  }, [selectableProjects, currentRequestedOn, currentAnsweredBy ])
+    setProjectsWhereBothUsersAreMembers(temp);
+  }, [selectableProjects, currentRequestedOn, currentAnsweredBy]);
 
   // if there is only one team in the selectable projects for the user, choose the first one as the default.
   React.useEffect(() => {
     if (!projectsWhereBothUsersAreMembers.length) return;
 
     if (projectsWhereBothUsersAreMembers.length === 1) {
-      setValueForm("projectUid", projectsWhereBothUsersAreMembers[0].docId)
+      setValueForm("projectUid", projectsWhereBothUsersAreMembers[0].docId);
     }
-  }, [projectsWhereBothUsersAreMembers, setValueForm])
+  }, [projectsWhereBothUsersAreMembers, setValueForm]);
 
   // set currentRequestedOn to current user if role is of type USER
   React.useEffect(() => {
@@ -152,6 +163,7 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
         console.log(data);
 
         await addDoc(collection(db, "feedbackRequests"), {
+          createdAt: Timestamp.now(),
           completed: false,
           ...data,
         });
@@ -341,15 +353,9 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
                               defaultValue={field.value}
                             >
                               {React.Children.toArray(
-                                projectsWhereBothUsersAreMembers.map(
-                                  (p) => (
-                                    <option
-                                      value={p.docId}
-                                    >
-                                      {p.name}
-                                    </option>
-                                  )
-                                )
+                                projectsWhereBothUsersAreMembers.map((p) => (
+                                  <option value={p.docId}>{p.name}</option>
+                                ))
                               )}
                             </Select>
                             <FormErrorMessage>
