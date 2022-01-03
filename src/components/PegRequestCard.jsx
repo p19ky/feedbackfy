@@ -127,6 +127,7 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
           evaluatedBy: pr.evaluatorUid,
           requestedBy: pr.creatorUid,
           pegRequestId: pr.docId,
+          projectId: pr.projectUid,
         };
 
         await addDoc(collection(db, "pegEvaluations"), newPegEvaluation);

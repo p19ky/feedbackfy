@@ -32,6 +32,7 @@ export const calculateOverallRating = (pegEvaluation) => {
 const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
   const [evaluatedByPerson, setEvaluatedByPerson] = React.useState(null);
   const [requestedByPerson, setRequestedByPerson] = React.useState(null);
+  const [currentProject, setCurrentProject] = React.useState(null);
 
   const containerFlexBg = useColorModeValue("#F9FAFB", "gray.600");
   const containerBoxBg = useColorModeValue("white", "gray.800");
@@ -77,6 +78,34 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
     })();
   }, [pe]);
 
+  // get project of current peg evaluation
+  React.useEffect(() => {
+    if (!pe ) return;
+
+    (async () => {
+      const { projectId } = pe;
+
+      try {
+        const projectReponse = await getDoc(
+          doc(db, "projects", projectId)
+        );
+
+        if (!projectReponse.exists) {
+          throw new Error("Given projectId does not exist for a project.");
+        }
+
+        const tempCurrentProject = {
+          docId: projectReponse.id,
+          ...projectReponse.data(),
+        };
+
+        setCurrentProject(tempCurrentProject);
+      } catch (error) {
+        console.error("Couldn't get current project.", error);
+      }
+    })();
+  }, [pe])
+
   return (
     <Flex
       bg={containerFlexBg}
@@ -85,7 +114,7 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
       alignItems="center"
       justifyContent="center"
     >
-      {!evaluatedByPerson || !requestedByPerson ? (
+      {!evaluatedByPerson || !requestedByPerson || !currentProject ? (
         <Skeleton
           startColor="teal.50"
           endColor="green.900"
@@ -115,6 +144,9 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
               }.${new Date(pe.createdAt.seconds * 1000).getFullYear()} by ${
                 evaluatedByPerson.displayName
               }`}
+            </chakra.span>
+            <chakra.span fontSize="sm" color={subtleText} fontWeight="bold">
+              {currentProject?.name}
             </chakra.span>
             <chakra.span fontSize="sm" color={subtleText}>
               {`Peg Request created by ${requestedByPerson.displayName}`}

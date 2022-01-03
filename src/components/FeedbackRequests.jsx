@@ -112,19 +112,21 @@ const FeedbackRequests = () => {
   }, [myFeedbackRequests, currentFilter]);
 
   const handleFilterByUser = (event) => {
+    const currentFilterValue = event.target.value.trim().toLowerCase();
+
     const filtered = myFeedbackRequests.filter(
       (fr) =>
         Boolean(
           generateKeywordsArrayForText(
             fr.answeredByFull.displayName?.toLowerCase(),
             false
-          )?.includes(event.target.value.trim().toLowerCase())
+          )?.includes(currentFilterValue)
         ) ||
         Boolean(
           generateKeywordsArrayForText(
             fr.requestedOnFull.displayName?.toLowerCase(),
             false
-          )?.includes(event.target.value.trim().toLowerCase())
+          )?.includes(currentFilterValue)
         )
     );
 

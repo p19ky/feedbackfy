@@ -122,13 +122,13 @@ const FeedbacksReceivedCard = ({ feedback, isLast = false }) => {
               }.${new Date(feedback.createdAt.seconds * 1000).getFullYear()}`}
             </chakra.span>
             {!!currentProject && (
-              <chakra.span fontSize="sm" color={subtleText}>
+              <chakra.span fontSize="sm" color={subtleText} fontWeight="bold">
                 {`${currentProject.name}`}
               </chakra.span>
             )}
-            <chakra.span fontSize="sm" color={subtleText}>
-              {`Feedback by ${currentAnsweredBy.displayName}`}
-            </chakra.span>
+            {<chakra.span fontSize="sm" color={subtleText}>
+              {`Feedback by ${feedback.anonym ? "Anonymous Feedbacker" : currentAnsweredBy.displayName}`}
+            </chakra.span>}
           </Flex>
 
           <Table variant="sm">

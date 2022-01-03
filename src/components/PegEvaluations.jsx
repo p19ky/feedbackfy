@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { collection, onSnapshot, query, where } from "@firebase/firestore";
+import { collection, onSnapshot, query, where, orderBy } from "@firebase/firestore";
 
 import { db } from "../firebase";
 import PegEvaluationCard from "./PegEvaluationCard";
@@ -14,11 +14,13 @@ const PegEvaluations = () => {
     () => ({
       [ROLES.USER]: query(
         collection(db, "pegEvaluations"),
-        where("requestedBy", "==", currentUser.uid)
+        where("requestedBy", "==", currentUser.uid),
+        orderBy("createdAt", "desc")
       ),
       [ROLES.MANAGER]: query(
         collection(db, "pegEvaluations"),
-        where("evaluatedBy", "==", currentUser.uid)
+        where("evaluatedBy", "==", currentUser.uid),
+        orderBy("createdAt", "desc")
       ),
     }),
     [currentUser]

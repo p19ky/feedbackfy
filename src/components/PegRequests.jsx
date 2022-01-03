@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
 
 import { db } from "../firebase";
 import PegRequestCard from "./PegRequestCard";
@@ -13,11 +13,13 @@ const PegRequests = () => {
   const queriesMap = React.useMemo(() => ({
     [ROLES.USER]: query(
       collection(db, "pegRequests"),
-      where("creatorUid", "==", currentUser.uid)
+      where("creatorUid", "==", currentUser.uid),
+      orderBy("dateOfPeg", "desc"),
     ),
     [ROLES.MANAGER]: query(
       collection(db, "pegRequests"),
-      where("evaluatorUid", "==", currentUser.uid)
+      where("evaluatorUid", "==", currentUser.uid),
+      orderBy("dateOfPeg", "desc"),
     ),
   }), [currentUser]);
 
