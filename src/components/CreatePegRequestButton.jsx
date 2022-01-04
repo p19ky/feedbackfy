@@ -256,7 +256,7 @@ const CreatePegRequestButton = () => {
   );
 
   return (
-    <Flex mb={4}>
+    <Flex>
       {currentUserTeams !== undefined && currentUserTeams.length === 0 ? (
         <Alert
           p={2}

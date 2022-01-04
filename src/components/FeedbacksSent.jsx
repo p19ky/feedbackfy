@@ -100,8 +100,8 @@ const FeedbacksSent = () => {
 
   return (
     <>
-      <Grid templateColumns="repeat(6, 1fr)" mb={4} alignItems={"center"}>
-        <FormControl as={GridItem} colStart={1} colSpan={2}>
+      <Grid templateColumns="repeat(8, 1fr)" mb={4} alignItems={"center"}>
+        <FormControl as={GridItem} colStart={1} colSpan={{base: 8, sm: 6, md: 4, lg: 2}}>
           <FormLabel
             htmlFor={"user filter"}
             fontSize="sm"

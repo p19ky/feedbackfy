@@ -12,10 +12,14 @@ import {
   Tr,
 } from "@chakra-ui/react";
 import { doc, getDoc } from "firebase/firestore";
+import { useSelector } from "react-redux";
 
 import { db } from "../firebase";
 import { isObject } from "../utils/helpers";
-import { PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING, PEG_EVALUATION_TYPE_TO_TITLE } from "../utils/constants";
+import {
+  PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING,
+  PEG_EVALUATION_TYPE_TO_TITLE,
+} from "../utils/constants";
 
 export const calculateOverallRating = (pegEvaluation) => {
   const { result, count } = Object.values(pegEvaluation).reduce(
@@ -26,13 +30,15 @@ export const calculateOverallRating = (pegEvaluation) => {
     { result: 0, count: 0 }
   );
 
-  return result / count;
+  return (result / count).toFixed(2);
 };
 
 const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
   const [evaluatedByPerson, setEvaluatedByPerson] = React.useState(null);
   const [requestedByPerson, setRequestedByPerson] = React.useState(null);
   const [currentProject, setCurrentProject] = React.useState(null);
+
+  const currentUser = useSelector((state) => state.user.value);
 
   const containerFlexBg = useColorModeValue("#F9FAFB", "gray.600");
   const containerBoxBg = useColorModeValue("white", "gray.800");
@@ -80,15 +86,13 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
 
   // get project of current peg evaluation
   React.useEffect(() => {
-    if (!pe ) return;
+    if (!pe) return;
 
     (async () => {
       const { projectId } = pe;
 
       try {
-        const projectReponse = await getDoc(
-          doc(db, "projects", projectId)
-        );
+        const projectReponse = await getDoc(doc(db, "projects", projectId));
 
         if (!projectReponse.exists) {
           throw new Error("Given projectId does not exist for a project.");
@@ -104,7 +108,7 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
         console.error("Couldn't get current project.", error);
       }
     })();
-  }, [pe])
+  }, [pe]);
 
   return (
     <Flex
@@ -142,14 +146,20 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
               ).getDate()}.${
                 new Date(pe.createdAt.seconds * 1000).getMonth() + 1
               }.${new Date(pe.createdAt.seconds * 1000).getFullYear()} by ${
-                evaluatedByPerson.displayName
+                currentUser.uid === evaluatedByPerson.uid
+                  ? "You"
+                  : evaluatedByPerson.displayName
               }`}
             </chakra.span>
             <chakra.span fontSize="sm" color={subtleText} fontWeight="bold">
               {currentProject?.name}
             </chakra.span>
             <chakra.span fontSize="sm" color={subtleText}>
-              {`Peg Request created by ${requestedByPerson.displayName}`}
+              {`Peg Request created by ${
+                currentUser.uid === requestedByPerson.uid
+                  ? "You"
+                  : requestedByPerson.displayName
+              }`}
             </chakra.span>
           </Flex>
 
@@ -193,7 +203,13 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
                       </Td>
                       <Td>
                         <Center>
-                          <Text>{PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[obj.rating]}</Text>
+                          <Text>
+                            {
+                              PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[
+                                obj.rating
+                              ]
+                            }
+                          </Text>
                         </Center>
                       </Td>
                       <Td>
@@ -218,8 +234,12 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
                     </Text>
                   </Center>
                 </Td>
-                <Td><Center>-</Center></Td>
-                <Td><Center>-</Center></Td>
+                <Td>
+                  <Center>-</Center>
+                </Td>
+                <Td>
+                  <Center>-</Center>
+                </Td>
               </CustomBodyTr>
             </Tbody>
           </Table>
