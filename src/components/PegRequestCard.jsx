@@ -31,6 +31,7 @@ import {
   onSnapshot,
   addDoc,
   Timestamp,
+  updateDoc,
 } from "@firebase/firestore";
 import { Skeleton } from "@chakra-ui/skeleton";
 import {
@@ -106,9 +107,6 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
       try {
         setLoadingEvaluate(true);
 
-        // console.log(data);
-        // console.log(pegEvaluationRatingComments);
-
         let newPegEvaluation = Object.entries(data).reduce(
           (acc, cur) => ({
             ...acc,
@@ -131,6 +129,10 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
         };
 
         await addDoc(collection(db, "pegEvaluations"), newPegEvaluation);
+
+        await updateDoc(doc(db, "pegRequests", pr.docId), {
+          evaluated: true,
+        });
 
         toast({
           position: "top",
@@ -408,37 +410,49 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
         [
           "Professional and Industry Experience",
           currentPegEvaluation.experience.rating,
-          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[currentPegEvaluation.experience.rating],
+          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[
+            currentPegEvaluation.experience.rating
+          ],
           currentPegEvaluation.experience.comments,
         ],
         [
           "Project and Program Management",
           currentPegEvaluation.management.rating,
-          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[currentPegEvaluation.management.rating],
+          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[
+            currentPegEvaluation.management.rating
+          ],
           currentPegEvaluation.management.comments,
         ],
         [
           "Strategy Focus",
           currentPegEvaluation.strategyFocus.rating,
-          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[currentPegEvaluation.strategyFocus.rating],
+          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[
+            currentPegEvaluation.strategyFocus.rating
+          ],
           currentPegEvaluation.strategyFocus.comments,
         ],
         [
           "Customer Focus",
           currentPegEvaluation.customerFocus.rating,
-          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[currentPegEvaluation.customerFocus.rating],
+          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[
+            currentPegEvaluation.customerFocus.rating
+          ],
           currentPegEvaluation.customerFocus.comments,
         ],
         [
           "Employee Focus",
           currentPegEvaluation.employeeFocus.rating,
-          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[currentPegEvaluation.employeeFocus.rating],
+          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[
+            currentPegEvaluation.employeeFocus.rating
+          ],
           currentPegEvaluation.employeeFocus.comments,
         ],
         [
           "Focus on Excellence",
           currentPegEvaluation.excellenceFocus.rating,
-          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[currentPegEvaluation.excellenceFocus.rating],
+          PEG_EVALUATION_RATING_TO_TEXTUAL_MEANING[
+            currentPegEvaluation.excellenceFocus.rating
+          ],
           currentPegEvaluation.excellenceFocus.comments,
         ],
         [
@@ -457,7 +471,7 @@ const PegRequestCard = ({ pegRequest: pr, isLast = false }) => {
       link.setAttribute("href", encodedUri);
       link.setAttribute("download", "PEG.csv");
       document.body.appendChild(link); // Required for FF
-      
+
       link.click(); // This will download the data file named "PEG.csv".
     } catch (error) {
       console.log(error);

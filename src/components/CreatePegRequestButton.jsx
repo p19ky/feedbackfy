@@ -198,7 +198,10 @@ const CreatePegRequestButton = () => {
           fiscalYear,
           numberOfProjectDaysEvaluated,
           projectUid,
+          evaluated: false,
         });
+
+        setIsOpenDialog(false);
 
         await updateDoc(doc(db, "projects", projectUid), {
           currentlyInPegRequest: true,
@@ -229,7 +232,6 @@ const CreatePegRequestButton = () => {
           duration: 9000,
           isClosable: true,
         });
-        onCloseDialog();
       } catch (error) {
         console.log(error);
         const errorMessage = error.code?.split("/")[1].replaceAll("-", " ");
@@ -243,6 +245,7 @@ const CreatePegRequestButton = () => {
         });
       } finally {
         setLoadingNewPegRequest(false);
+        onCloseDialog();
       }
     },
     [
@@ -273,7 +276,13 @@ const CreatePegRequestButton = () => {
         </Alert>
       ) : (
         <>
-          <Button onClick={() => setIsOpenDialog(true)}>New Peg Request</Button>
+          <Button
+            isDisabled={loadingNewPegRequest}
+            isLoading={loadingNewPegRequest}
+            onClick={() => setIsOpenDialog(true)}
+          >
+            New Peg Request
+          </Button>
           <AlertDialog
             isOpen={isOpenDialog}
             leastDestructiveRef={cancelDialogRef}

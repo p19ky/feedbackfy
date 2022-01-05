@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -48,10 +49,7 @@ const FeedbackRequests = () => {
       );
 
       const feedbackRequestsAnsweredByResponse = await getDocs(
-        query(
-          collection(db, "feedbackRequests"),
-          where("answeredBy", "==", currentUser.uid)
-        )
+        query(collection(db, "feedbackRequests"))
       );
 
       const feedbackRequestsCreatedBy =
@@ -92,6 +90,15 @@ const FeedbackRequests = () => {
         };
       }
 
+      // order by createdAt first
+      tempMyFeedbackRequests.sort(
+        (x, y) => y.createdAt.seconds - x.createdAt.seconds
+      );
+
+      // after orderBy createdAt, we need to also order by completed (first all that are false).
+      tempMyFeedbackRequests.sort((x, y) =>
+        x.completed > y.completed ? 1 : x.completed < y.completed ? -1 : 0
+      );
       setMyFeedbackRequests(tempMyFeedbackRequests);
     })();
   }, [currentUser]);

@@ -8,6 +8,7 @@ import {
   Badge,
   Button,
   useDisclosure,
+  chakra,
 } from "@chakra-ui/react";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -33,6 +34,7 @@ const FeedbackRequestCard = ({
 
   const containerFlexBg = useColorModeValue("#F9FAFB", "gray.600");
   const containerBoxBg = useColorModeValue("white", "gray.800");
+  const subtleText = useColorModeValue("gray.600", "gray.400");
 
   React.useEffect(() => {
     if (!fr) return;
@@ -118,6 +120,14 @@ const FeedbackRequestCard = ({
           w="50%"
         >
           <Flex justifyContent="space-between" alignItems="center">
+            <chakra.span
+              fontSize="sm"
+              color={subtleText}
+            >{`Created at ${new Date(fr.createdAt.seconds * 1000).getDate()}.${
+              new Date(fr.createdAt.seconds * 1000).getMonth() + 1
+            }.${new Date(
+              fr.createdAt.seconds * 1000
+            ).getFullYear()}`}</chakra.span>
             <Text>{currentFRProject?.name}</Text>
             <Badge colorScheme={fr.completed ? "green" : "red"}>
               {fr.completed ? "Answered" : "Not Answered Yet"}

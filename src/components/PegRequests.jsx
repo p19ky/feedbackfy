@@ -67,6 +67,11 @@ const PegRequests = () => {
               ...doc.data(),
             }));
 
+            // after orderBy createdAt, we need to also order by evaluated (first all that are false).
+            results.sort((x, y) =>
+              x.evaluated > y.evaluated ? 1 : x.evaluated < y.evaluated ? -1 : 0
+            );
+
             setPegRequests(results);
             setFilteredPegRequests(results);
           }
@@ -162,7 +167,7 @@ const PegRequests = () => {
             md: 4, // 48em-62em
             lg: 2, // 62em+
           }}
-          mb={{base: 4, sm: 0}}
+          mb={{ base: 4, sm: 0 }}
         >
           <FormLabel
             htmlFor={"user filter"}
