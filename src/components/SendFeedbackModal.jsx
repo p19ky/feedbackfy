@@ -486,7 +486,6 @@ const SendFeedbackModal = ({
             </Button>
             <Button
               ml={2}
-              ref={cancelDialogRef}
               onClick={handleSubmitForm(submitFeedbackForm)}
               isDisabled={loadingSendFeedback}
               isLoading={loadingSendFeedback}

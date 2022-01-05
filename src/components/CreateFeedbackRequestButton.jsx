@@ -33,7 +33,10 @@ import {
 } from "@firebase/firestore";
 import { db } from "../firebase";
 
-const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
+const CreateFeedbackRequestButton = ({
+  myTeams,
+  setShouldRefetchFeedbackRequests,
+}) => {
   const [isOpenDialog, setIsOpenDialog] = React.useState(false);
   const [loadingNewFeedbackRequest, setLoadingNewFeedbackRequest] =
     React.useState(false);
@@ -168,6 +171,9 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
           createdBy: currentUser.uid,
           ...data,
         });
+
+        setShouldRefetchFeedbackRequests(new Date());
+
         onCloseDialog();
 
         toast({
@@ -178,6 +184,7 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
           isClosable: true,
         });
       } catch (error) {
+        console.error(error);
         const errorMessage = error.code.split("/")[1].replaceAll("-", " ");
 
         toast({
@@ -191,7 +198,7 @@ const CreateFeedbackRequestButton = ({ myTeams, MyTeamsUids }) => {
         setLoadingNewFeedbackRequest(false);
       }
     },
-    [toast, onCloseDialog, currentUser]
+    [toast, onCloseDialog, setShouldRefetchFeedbackRequests, currentUser]
   );
 
   return (

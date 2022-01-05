@@ -122,7 +122,7 @@ const FeedbacksReceivedCard = ({ feedback, isLast = false }) => {
               }.${new Date(feedback.createdAt.seconds * 1000).getFullYear()}`}
             </chakra.span>
             {!!currentProject && (
-              <chakra.span fontSize="sm" color={subtleText} fontWeight="bold">
+              <chakra.span fontSize="md" fontWeight="bold">
                 {`${currentProject.name}`}
               </chakra.span>
             )}

@@ -151,7 +151,7 @@ const PegEvaluationCard = ({ pegEvaluation: pe, isLast = false }) => {
                   : evaluatedByPerson.displayName
               }`}
             </chakra.span>
-            <chakra.span fontSize="sm" color={subtleText} fontWeight="bold">
+            <chakra.span fontSize="lg" fontWeight="bold">
               {currentProject?.name}
             </chakra.span>
             <chakra.span fontSize="sm" color={subtleText}>

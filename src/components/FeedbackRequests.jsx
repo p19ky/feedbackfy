@@ -5,7 +5,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -25,7 +24,7 @@ import { generateKeywordsArrayForText } from "../utils/helpers";
 
 const FEEDBACK_REQUESTS_FILTERS = ["All", "Not Answered Yet", "Answered"];
 
-const FeedbackRequests = () => {
+const FeedbackRequests = ({ shouldRefetchFeedbackRequests }) => {
   const [myFeedbackRequests, setMyFeedbackRequests] = React.useState([]);
   const [myFilteredFeedbackRequests, setMyFilteredFeedbackRequests] =
     React.useState([]);
@@ -36,72 +35,83 @@ const FeedbackRequests = () => {
   const currentUser = useSelector((state) => state.user.value);
   const colorModeForFromLabels = useColorModeValue("gray.700", "gray.50");
 
+  const fetchFeedbackRequests = React.useCallback(async () => {
+    const feedbackRequestsCreatedByResponse = await getDocs(
+      query(
+        collection(db, "feedbackRequests"),
+        where("createdBy", "==", currentUser.uid)
+      )
+    );
+
+    const feedbackRequestsAnsweredByResponse = await getDocs(
+      query(
+        collection(db, "feedbackRequests"),
+        where("answeredBy", "==", currentUser.uid)
+      )
+    );
+
+    const feedbackRequestsCreatedBy =
+      feedbackRequestsCreatedByResponse.docs.map((d) => ({
+        docId: d.id,
+        ...d.data(),
+      }));
+    const feedbackRequestsAnsweredBy =
+      feedbackRequestsAnsweredByResponse.docs.map((d) => ({
+        docId: d.id,
+        ...d.data(),
+      }));
+
+    const tempMyFeedbackRequests = [
+      ...feedbackRequestsCreatedBy,
+      ...feedbackRequestsAnsweredBy,
+    ].reduce(
+      (acc, cur) =>
+        // do not insert duplicates
+        acc.some((e) => e.docId === cur.docId) ? acc : [...acc, cur],
+      []
+    );
+
+    for (let index = 0; index < tempMyFeedbackRequests.length; index++) {
+      const element = tempMyFeedbackRequests[index];
+
+      const answeredByFullResponse = await getDoc(
+        doc(db, "users", element.answeredBy)
+      );
+      const requestedOnFullResponse = await getDoc(
+        doc(db, "users", element.requestedOn)
+      );
+
+      tempMyFeedbackRequests[index] = {
+        ...tempMyFeedbackRequests[index],
+        answeredByFull: answeredByFullResponse.data(),
+        requestedOnFull: requestedOnFullResponse.data(),
+      };
+    }
+
+    // order by createdAt first
+    tempMyFeedbackRequests.sort(
+      (x, y) => y.createdAt.seconds - x.createdAt.seconds
+    );
+
+    // after orderBy createdAt, we need to also order by completed (first all that are false).
+    tempMyFeedbackRequests.sort((x, y) =>
+      x.completed > y.completed ? 1 : x.completed < y.completed ? -1 : 0
+    );
+    setMyFeedbackRequests(tempMyFeedbackRequests);
+  }, [currentUser]);
+
   // get all the feedback requests that were created by or need answer by current user.
   React.useEffect(() => {
     if (!currentUser) return;
 
-    (async () => {
-      const feedbackRequestsCreatedByResponse = await getDocs(
-        query(
-          collection(db, "feedbackRequests"),
-          where("createdBy", "==", currentUser.uid)
-        )
-      );
+    fetchFeedbackRequests();
+  }, [currentUser, fetchFeedbackRequests]);
 
-      const feedbackRequestsAnsweredByResponse = await getDocs(
-        query(collection(db, "feedbackRequests"))
-      );
+  React.useEffect(() => {
+    if (!currentUser || !shouldRefetchFeedbackRequests) return;
 
-      const feedbackRequestsCreatedBy =
-        feedbackRequestsCreatedByResponse.docs.map((d) => ({
-          docId: d.id,
-          ...d.data(),
-        }));
-      const feedbackRequestsAnsweredBy =
-        feedbackRequestsAnsweredByResponse.docs.map((d) => ({
-          docId: d.id,
-          ...d.data(),
-        }));
-
-      const tempMyFeedbackRequests = [
-        ...feedbackRequestsCreatedBy,
-        ...feedbackRequestsAnsweredBy,
-      ].reduce(
-        (acc, cur) =>
-          // do not insert duplicates
-          acc.some((e) => e.docId === cur.docId) ? acc : [...acc, cur],
-        []
-      );
-
-      for (let index = 0; index < tempMyFeedbackRequests.length; index++) {
-        const element = tempMyFeedbackRequests[index];
-
-        const answeredByFullResponse = await getDoc(
-          doc(db, "users", element.answeredBy)
-        );
-        const requestedOnFullResponse = await getDoc(
-          doc(db, "users", element.requestedOn)
-        );
-
-        tempMyFeedbackRequests[index] = {
-          ...tempMyFeedbackRequests[index],
-          answeredByFull: answeredByFullResponse.data(),
-          requestedOnFull: requestedOnFullResponse.data(),
-        };
-      }
-
-      // order by createdAt first
-      tempMyFeedbackRequests.sort(
-        (x, y) => y.createdAt.seconds - x.createdAt.seconds
-      );
-
-      // after orderBy createdAt, we need to also order by completed (first all that are false).
-      tempMyFeedbackRequests.sort((x, y) =>
-        x.completed > y.completed ? 1 : x.completed < y.completed ? -1 : 0
-      );
-      setMyFeedbackRequests(tempMyFeedbackRequests);
-    })();
-  }, [currentUser]);
+    fetchFeedbackRequests();
+  }, [currentUser, shouldRefetchFeedbackRequests, fetchFeedbackRequests]);
 
   React.useEffect(() => {
     if (!myFeedbackRequests.length || !currentFilter) return;

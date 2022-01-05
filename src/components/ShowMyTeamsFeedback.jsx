@@ -37,7 +37,7 @@ const ShowMyTeamsFeedback = ({ myTeams }) => {
               fontWeight="bold"
               textAlign="center"
             >
-              {`These are your teams 👇`}
+              {`Teams you are part of 👇`}
             </AlertDialogHeader>
 
             <AlertDialogBody>
@@ -53,10 +53,10 @@ const ShowMyTeamsFeedback = ({ myTeams }) => {
                   <Text fontSize="sm">You are not part of a team.</Text>
                 </Alert>
               ) : (
-                <Flex direction="column">
+                <VStack spacing={8}>
                   {React.Children.toArray(
                     myTeams.map((t) => (
-                      <Flex direction="column">
+                      <VStack direction="column">
                         <Heading
                           color={teamMemberNameColor}
                           fontWeight="700"
@@ -65,12 +65,7 @@ const ShowMyTeamsFeedback = ({ myTeams }) => {
                         >
                           {t.name}
                         </Heading>
-                        <Flex
-                          wrap="wrap"
-                          justify="center"
-                          align="center"
-                          mb={4}
-                        >
+                        <VStack>
                           {React.Children.toArray(
                             t.members.map((m) => (
                               <Flex align="center">
@@ -101,17 +96,17 @@ const ShowMyTeamsFeedback = ({ myTeams }) => {
                               </Flex>
                             ))
                           )}
-                        </Flex>
-                      </Flex>
+                        </VStack>
+                      </VStack>
                     ))
                   )}
-                </Flex>
+                </VStack>
               )}
             </AlertDialogBody>
 
             <AlertDialogFooter justifyContent="center">
               <Button ref={cancelDialogRef} onClick={onCloseDialog}>
-                Ok
+                Nice!
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

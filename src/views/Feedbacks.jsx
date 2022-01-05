@@ -23,6 +23,8 @@ const Feedbacks = () => {
   const currentUser = useSelector((state) => state.user.value);
   const [myTeams, setMyTeams] = React.useState([]);
   const [myTeamsWithDetails, setMyTeamsWithDetails] = React.useState([]);
+  const [shouldRefetchFeedbackRequests, setShouldRefetchFeedbackRequests] =
+    React.useState(null);
 
   // Get all the teams that the current user belongs to
   React.useEffect(() => {
@@ -101,7 +103,10 @@ const Feedbacks = () => {
           myTeams={myTeamsWithDetails}
           setOfAllTeamMembers={setOfAllTeamMembers}
         />
-        <CreateFeedbackRequestButton myTeams={myTeamsWithDetails} />
+        <CreateFeedbackRequestButton
+          myTeams={myTeamsWithDetails}
+          setShouldRefetchFeedbackRequests={setShouldRefetchFeedbackRequests}
+        />
         <ShowMyTeamsFeedback myTeams={myTeamsWithDetails} />
       </HStack>
 
@@ -114,7 +119,9 @@ const Feedbacks = () => {
 
         <TabPanels>
           <TabPanel>
-            <FeedbackRequests />
+            <FeedbackRequests
+              shouldRefetchFeedbackRequests={shouldRefetchFeedbackRequests}
+            />
           </TabPanel>
           <TabPanel>
             <FeedbacksSent />

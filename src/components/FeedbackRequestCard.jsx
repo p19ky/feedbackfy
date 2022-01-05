@@ -128,7 +128,7 @@ const FeedbackRequestCard = ({
             }.${new Date(
               fr.createdAt.seconds * 1000
             ).getFullYear()}`}</chakra.span>
-            <Text>{currentFRProject?.name}</Text>
+            <Text fontWeight="bold">{currentFRProject?.name}</Text>
             <Badge colorScheme={fr.completed ? "green" : "red"}>
               {fr.completed ? "Answered" : "Not Answered Yet"}
             </Badge>
